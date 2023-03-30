@@ -30,7 +30,7 @@ public class JXLatte {
     }
 
     private static void writePNG(String outputFilename, JXLImage image, JXLOptions options) throws IOException {
-        boolean hdr = options.hdr == JXLOptions.HDR_AUTO ? image.isHDR() : options.hdr == JXLOptions.HDR_ON;
+        var hdr = options.hdr == JXLOptions.HDR_AUTO ? image.isHDR() : options.hdr == JXLOptions.HDR_ON;
         int bitDepth = hdr ? 16 : options.outputDepth;
         PNGWriter writer = new PNGWriter(image, bitDepth, options.outputCompression, hdr);
         writeImage(writer::write, outputFilename);
@@ -300,20 +300,13 @@ public class JXLatte {
             System.exit(2);
         }
 
-        while (writeImage(options, decoder)) {
-            // pass
-        }
+        writeImage(options, decoder);
 
         try {
             decoder.close();
-        } catch (IOException ioe) {
-            if (options.debug)
-                ioe.printStackTrace();
+        } catch (IOException e) {
+            if (options.debug) e.printStackTrace();
             System.exit(2);
-        }
-
-        if (options.output != null && options.output.equals("-")) {
-            System.out.close();
         }
     }
 }

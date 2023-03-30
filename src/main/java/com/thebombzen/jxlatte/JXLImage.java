@@ -33,7 +33,7 @@ public class JXLImage {
         this.colorEncoding = header.getColorEncoding().colorEncoding;
         this.alphaIndex = header.hasAlpha() ? header.getAlphaIndex(0) : -1;
         this.imageHeader = header;
-        ColorEncodingBundle bundle = header.getColorEncoding();
+        var bundle = header.getColorEncoding();
         if (imageHeader.isXYBEncoded()) {
             this.transfer = ColorFlags.TF_LINEAR;
             this.iccProfile = null;
@@ -76,15 +76,14 @@ public class JXLImage {
     }
 
     public boolean isHDR() {
-        switch(taggedTransfer) {
-            case ColorFlags.TF_PQ:
-            case ColorFlags.TF_HLG:
-            case ColorFlags.TF_LINEAR:
+        switch (taggedTransfer) {
+            case ColorFlags.TF_PQ, ColorFlags.TF_HLG, ColorFlags.TF_LINEAR -> {
                 return true;
+            }
         }
         ColorEncodingBundle color = imageHeader.getColorEncoding();
         return color.prim != null && !color.prim.matches(ColorFlags.getPrimaries(ColorFlags.PRI_SRGB))
-                                  && !color.prim.matches(ColorFlags.getPrimaries(ColorFlags.PRI_P3));
+               && !color.prim.matches(ColorFlags.getPrimaries(ColorFlags.PRI_P3));
     }
 
     /*
@@ -174,9 +173,9 @@ public class JXLImage {
         if (image.primaries1931.matches(primaries) && image.white1931.matches(whitePoint))
             return image.transfer(transfer);
         return image.transfer(ColorFlags.TF_LINEAR)
-            .fillColor()
-            .toneMapLinear(primaries, whitePoint)
-            .transfer(transfer);
+                .fillColor()
+                .toneMapLinear(primaries, whitePoint)
+                .transfer(transfer);
     }
 
     public JXLImage transform(int primaries, int whitePoint, int transfer) {
@@ -233,7 +232,7 @@ public class JXLImage {
         float[][][] imBuffer = image.buffer;
         final DoubleUnaryOperator transferFunction = composed;
         FlowHelper.parallelIterate(buffer.length, new IntPoint(width, height), (c, x, y) -> {
-            imBuffer[c][y][x] = (float)transferFunction.applyAsDouble(buffer[c][y][x]);
+            imBuffer[c][y][x] = (float) transferFunction.applyAsDouble(buffer[c][y][x]);
         });
         image.transfer = transfer;
         return image;
