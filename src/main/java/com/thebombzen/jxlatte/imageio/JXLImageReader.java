@@ -9,7 +9,6 @@ import javax.imageio.ImageReader;
 import javax.imageio.ImageTypeSpecifier;
 import javax.imageio.metadata.IIOMetadata;
 import javax.imageio.spi.ImageReaderSpi;
-import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -20,7 +19,7 @@ public class JXLImageReader extends ImageReader {
     private final byte[] bytes;
     private JXLImage image;
 
-    protected JXLImageReader(ImageReaderSpi originatingProvider, byte[] image) {
+    public JXLImageReader(ImageReaderSpi originatingProvider, byte[] image) {
         super(originatingProvider);
         this.bytes = image;
     }
