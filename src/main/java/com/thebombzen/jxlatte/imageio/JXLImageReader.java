@@ -57,18 +57,25 @@ public class JXLImageReader extends ImageReader {
 
     @Override
     public BufferedImage read(int imageIndex, ImageReadParam param) throws IOException {
-        var decoder = new JXLDecoder(new ByteArrayInputStream(bytes), new JXLOptions());
+        var decoder = new JXLDecoder(new ByteArrayInputStream(bytes), new JXLOptions(false));
         this.image = decoder.decode();
 
-        var bufferedImage = new BufferedImage(getWidth(0), getHeight(0), BufferedImage.TYPE_INT_ARGB);
-        for (int x = 0; x < image.getWidth(); x++) {
-            for (int y = 0; y < image.getHeight(); y++) {
-                int r = (int) Math.min(Math.max(image.getBuffer()[0][y][x] * 255, 0), 255);
-                int g = (int) Math.min(Math.max(image.getBuffer()[1][y][x] * 255, 0), 255);
-                int b = (int) Math.min(Math.max(image.getBuffer()[2][y][x] * 255, 0), 255);
-                int a = image.getAlphaIndex() == -1 ? 0xFF : (int) ((image.getBuffer()[3][y][x]) * 255);
+        var bufferedImage = new BufferedImage(getWidth(0), getHeight(0), BufferedImage.TYPE_INT_RGB);
+        var rBuffer = image.getBuffer()[0];
+        var gBuffer = image.getBuffer()[1];
+        var bBuffer = image.getBuffer()[2];
 
-                var argb = ((a & 0xFF) << 24) |
+        for (int y = 0; y < image.getHeight(); y++) {
+            var rYBuffer = rBuffer[y];
+            var gYBuffer = gBuffer[y];
+            var bYBuffer = bBuffer[y];
+
+            for (int x = 0; x < image.getWidth(); x++) {
+                int r = clampHDR(rYBuffer[x]);
+                int g = clampHDR(gYBuffer[x]);
+                int b = clampHDR(bYBuffer[x]);
+
+                var argb =
                         ((r & 0xFF) << 16) |
                         ((g & 0xFF) << 8)  |
                         ((b & 0xFF));
@@ -77,5 +84,9 @@ public class JXLImageReader extends ImageReader {
         }
 
         return bufferedImage;
+    }
+
+    private static int clampHDR(float hdr) {
+        return (int) Math.min(Math.max(hdr * 255, 0), 255);
     }
 }

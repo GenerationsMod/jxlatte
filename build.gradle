@@ -1,3 +1,18 @@
 plugins {
     id 'java'
+    id "maven-publish"
+}
+
+group = "com.thebombzen"
+version = "1.0.1"
+
+publishing {
+    publications {
+        myLib(MavenPublication) {
+            from components.java
+        }
+    }
+    repositories {
+        mavenLocal()
+    }
 }

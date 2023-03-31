@@ -15,7 +15,6 @@ import com.thebombzen.jxlatte.util.TaskList;
 import com.thebombzen.jxlatte.util.functional.ExceptionalIntBiConsumer;
 
 public class ModularStream {
-
     private static final int[][] kDeltaPalette = {
         {0, 0, 0}, {4, 4, 4}, {11, 0, 0}, {0, 0, -13}, {0, -12, 0}, {-10, -10, -10},
         {-18, -18, -18}, {-27, -27, -27}, {-18, -18, 0}, {0, 0, -32}, {-32, 0, 0}, {-37, -37, -37},
@@ -36,19 +35,19 @@ public class ModularStream {
     };
 
     private int nbMetaChannels = 0;
-    private int streamIndex;
-    private int distMultiplier;
+    private final int streamIndex;
+    private final int distMultiplier;
 
-    private MATree tree;
-    private WPParams wpParams;
-    private TransformInfo[] transforms;
-    private Frame frame;
+    private final MATree tree;
+    private final WPParams wpParams;
+    private final TransformInfo[] transforms;
+    private final Frame frame;
     private EntropyStream stream = null;
     private boolean transformed = false;
 
-    private List<ModularChannelInfo> channels = new ArrayList<>();
+    private final List<ModularChannelInfo> channels = new ArrayList<>();
 
-    private Map<Integer, SqueezeParam[]> squeezeMap = new HashMap<>();
+    private final Map<Integer, SqueezeParam[]> squeezeMap = new HashMap<>();
 
     public ModularStream(Bitreader reader, Frame frame,
             int streamIndex, int channelCount, int ecStart) throws IOException {
@@ -183,6 +182,7 @@ public class ModularStream {
         decodeChannels(reader, false);
     }
 
+    @SuppressWarnings("Java8ListReplaceAll") // Slower
     public void decodeChannels(Bitreader reader, boolean partial) throws IOException {
         for (int i = 0; i < channels.size(); i++) {
             ModularChannelInfo info = channels.get(i);

@@ -293,12 +293,11 @@ public class Frame {
     }
 
     private void decodeLFGroups(float[][][] lfBuffer) throws IOException {
-
         List<ModularChannelInfo> lfReplacementChannels = new ArrayList<>();
         List<Integer> lfReplacementChannelIndicies = new ArrayList<>();
         for (int i = 0; i < lfGlobal.gModular.stream.getEncodedChannelCount(); i++) {
             ModularChannel chan = lfGlobal.gModular.stream.getChannel(i);
-            if (!chan.isDecoded()) {
+            if (chan.isDecoded()) {
                 if (chan.hshift >= 3 && chan.vshift >= 3) {
                     lfReplacementChannelIndicies.add(i);
                     IntPoint size = new IntPoint(header.lfGroupDim).shiftRight(chan.hshift, chan.vshift);

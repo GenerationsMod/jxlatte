@@ -41,7 +41,7 @@ public class ModularChannel extends ModularChannelInfo {
     }
 
     public ModularChannel(ModularChannel copy) {
-        this(ModularChannelInfo.class.cast(copy));
+        this((ModularChannelInfo) copy);
         if (copy.buffer != null) {
             this.buffer = new int[height][];
             for (int y = 0; y < height; y++) {
@@ -89,11 +89,11 @@ public class ModularChannel extends ModularChannelInfo {
     }
 
     private int errorWest(int x, int y, int e) {
-        return x > 0 ? error[e][y][x - 1]: 0;
+        return x > 0 ? error[e][y][x - 1] : 0;
     }
 
     private int errorNorth(int x, int y, int e) {
-        return y > 0 ? error[e][y - 1][x]: 0;
+        return y > 0 ? error[e][y - 1][x] : 0;
     }
 
     private int errorWestWest(int x, int y, int e) {
@@ -144,7 +144,7 @@ public class ModularChannel extends ModularChannelInfo {
             case 12:
                 return (north(x, y) + northEast(x, y)) / 2;
             case 13:
-                return (6*north(x, y) - 2*northNorth(x, y) + 7*west(x, y) + westWest(x, y) + northEastEast(x, y) + 3*northEast(x, y)+8) / 16;
+                return (6 * north(x, y) - 2 * northNorth(x, y) + 7 * west(x, y) + westWest(x, y) + northEastEast(x, y) + 3 * northEast(x, y) + 8) / 16;
             default:
                 throw new IllegalStateException();
         }
@@ -164,14 +164,14 @@ public class ModularChannel extends ModularChannelInfo {
         subpred[1] = n3 - (((tW + tN + tNE) * wpParams.param1) >> 5);
         subpred[2] = w3 - (((tW + tN + tNW) * wpParams.param2) >> 5);
         subpred[3] = n3 - ((tNW * wpParams.param3a
-            + tN * wpParams.param3b
-            + tNE * wpParams.param3c
-            + (nn3 - n3) * wpParams.param3d
-            + (nw3 - w3) * wpParams.param3e) >> 5);
+                            + tN * wpParams.param3b
+                            + tNE * wpParams.param3c
+                            + (nn3 - n3) * wpParams.param3d
+                            + (nw3 - w3) * wpParams.param3e) >> 5);
         int wSum = 0;
         for (int e = 0; e < 4; e++) {
             int eSum = errorNorth(x, y, e) + errorWest(x, y, e) + errorNorthWest(x, y, e)
-                + errorWestWest(x, y, e) + errorNorthEast(x, y, e);
+                       + errorWestWest(x, y, e) + errorNorthEast(x, y, e);
             if (x + 1 == width)
                 eSum += errorWest(x, y, e);
             int shift = MathHelper.floorLog1p(eSum) - 5;
@@ -189,7 +189,7 @@ public class ModularChannel extends ModularChannelInfo {
         long s = (wSum >> 1) - 1L;
         for (int e = 0; e < 4; e++)
             s += subpred[e] * weight[e];
-        pred[y][x] = (int)((s * oneL24OverKP1[wSum - 1]) >> 24);
+        pred[y][x] = (int) ((s * oneL24OverKP1[wSum - 1]) >> 24);
         if (((tN ^ tW) | (tN ^ tNW)) <= 0)
             pred[y][x] = MathHelper.clamp(pred[y][x], w3, n3, ne3);
         int maxError = tW;
@@ -202,10 +202,8 @@ public class ModularChannel extends ModularChannelInfo {
         return maxError;
     }
 
-    public void decode(Bitreader reader, EntropyStream stream, WPParams wpParams, MATree tree,
-            ModularStream parent, int channelIndex, int streamIndex, int distMultiplier) throws IOException {
-        if (decoded)
-            return;
+    public void decode(Bitreader reader, EntropyStream stream, WPParams wpParams, MATree tree, ModularStream parent, int channelIndex, int streamIndex, int distMultiplier) throws IOException {
+        if (decoded) return;
         decoded = true;
         tree = tree.compactify(channelIndex, streamIndex);
         boolean useWP = forceWP || tree.usesWeightedPredictor();
@@ -227,48 +225,64 @@ public class ModularChannel extends ModularChannelInfo {
                     maxError = 0;
                 MATree leafNode = refinedTree.walk(k -> {
                     switch (k) {
-                        case 0:
+                        case 0 -> {
                             return channelIndex;
-                        case 1:
+                        }
+                        case 1 -> {
                             return streamIndex;
-                        case 2:
+                        }
+                        case 2 -> {
                             return y;
-                        case 3:
+                        }
+                        case 3 -> {
                             return x;
-                        case 4:
+                        }
+                        case 4 -> {
                             return Math.abs(north(x, y));
-                        case 5:
+                        }
+                        case 5 -> {
                             return Math.abs(west(x, y));
-                        case 6:
+                        }
+                        case 6 -> {
                             return north(x, y);
-                        case 7:
+                        }
+                        case 7 -> {
                             return west(x, y);
-                        case 8:
+                        }
+                        case 8 -> {
                             return x > 0
-                                ? west(x, y) - (west(x - 1, y) + north(x - 1, y) - northWest(x - 1, y))
-                                : west(x, y);
-                        case 9:
+                                    ? west(x, y) - (west(x - 1, y) + north(x - 1, y) - northWest(x - 1, y))
+                                    : west(x, y);
+                        }
+                        case 9 -> {
                             return west(x, y) + north(x, y) - northWest(x, y);
-                        case 10:
+                        }
+                        case 10 -> {
                             return west(x, y) - northWest(x, y);
-                        case 11:
+                        }
+                        case 11 -> {
                             return northWest(x, y) - north(x, y);
-                        case 12:
+                        }
+                        case 12 -> {
                             return north(x, y) - northEast(x, y);
-                        case 13:
+                        }
+                        case 13 -> {
                             return north(x, y) - northNorth(x, y);
-                        case 14:
+                        }
+                        case 14 -> {
                             return west(x, y) - westWest(x, y);
-                        case 15:
+                        }
+                        case 15 -> {
                             return maxError;
-                        default:
+                        }
+                        default -> {
                             if (k - 16 >= 4 * channelIndex)
                                 return 0;
                             int k2 = 16;
                             for (int j = channelIndex - 1; j >= 0; j--) {
                                 ModularChannel channel = parent.getChannel(j);
                                 if (channel.width != width || channel.height != height
-                                        || channel.hshift != hshift || channel.vshift != vshift)
+                                    || channel.hshift != hshift || channel.vshift != vshift)
                                     continue;
                                 if (k2 + 4 <= k) {
                                     k2 += 4;
@@ -289,6 +303,7 @@ public class ModularChannel extends ModularChannelInfo {
                                     return rG;
                             }
                             return 0;
+                        }
                     }
                 });
                 int diff = stream.readSymbol(reader, leafNode.getContext(), distMultiplier);
@@ -331,14 +346,14 @@ public class ModularChannel extends ModularChannelInfo {
     }
 
     public boolean isDecoded() {
-        return decoded;
+        return !decoded;
     }
 
     public static ModularChannel inverseHorizontalSqueeze(ModularChannelInfo info, ModularChannel orig,
-            ModularChannel res) {
+                                                          ModularChannel res) {
         if (info.width != orig.width + res.width
-                || (orig.width != res.width && orig.width != 1 + res.width)
-                || info.height != orig.height || res.height != orig.height)
+            || (orig.width != res.width && orig.width != 1 + res.width)
+            || info.height != orig.height || res.height != orig.height)
             throw new IllegalArgumentException("Corrupted squeeze transform");
         ModularChannel channel = new ModularChannel(info);
         FlowHelper.parallelIterate(new IntPoint(res.width, channel.height), (x, y) -> {
@@ -360,10 +375,10 @@ public class ModularChannel extends ModularChannelInfo {
     }
 
     public static ModularChannel inverseVerticalSqueeze(ModularChannelInfo info, ModularChannel orig,
-            ModularChannel res) {
+                                                        ModularChannel res) {
         if (info.height != orig.height + res.height
-                || (orig.height != res.height && orig.height != 1 + res.height)
-                || info.width != orig.width || res.width != orig.width)
+            || (orig.height != res.height && orig.height != 1 + res.height)
+            || info.width != orig.width || res.width != orig.width)
             throw new IllegalStateException("Corrupted squeeze transform");
 
         ModularChannel channel = new ModularChannel(info);

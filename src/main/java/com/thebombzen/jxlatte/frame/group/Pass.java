@@ -33,7 +33,7 @@ public class Pass {
         replacedChannels = new ModularChannelInfo[globalModular.stream.getEncodedChannelCount()];
         for (int i = 0; i < globalModular.stream.getEncodedChannelCount(); i++) {
             ModularChannel chan = globalModular.stream.getChannel(i);
-            if (!chan.isDecoded()) {
+            if (chan.isDecoded()) {
                 int m = Math.min(chan.hshift, chan.vshift);
                 if (minShift <= m && m < maxShift)
                     replacedChannels[i] = new ModularChannelInfo(chan);

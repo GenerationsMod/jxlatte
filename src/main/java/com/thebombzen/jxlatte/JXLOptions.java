@@ -30,6 +30,10 @@ public class JXLOptions {
 
     }
 
+    public JXLOptions(boolean hdr) {
+        this.hdr = hdr ? HDR_ON : HDR_OFF;
+    }
+
     public JXLOptions(JXLOptions options) {
         this.debug = options.debug;
         this.outputFormat = options.outputFormat;
