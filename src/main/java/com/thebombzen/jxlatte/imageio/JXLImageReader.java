@@ -88,6 +88,6 @@ public class JXLImageReader extends ImageReader {
     }
 
     private static int hdrToRgb(float hdr) {
-        return (int) Math.min(Math.max(Math.pow(hdr, 0.46) * 255, 0), 255);
+        return (int) Math.min(Math.max(Math.pow(hdr, 1.0/2.2) * 255, 0), 255);
     }
 }
