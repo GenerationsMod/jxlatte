@@ -3,6 +3,7 @@ package com.thebombzen.jxlatte.imageio;
 import com.thebombzen.jxlatte.JXLDecoder;
 import com.thebombzen.jxlatte.JXLImage;
 import com.thebombzen.jxlatte.JXLOptions;
+import com.thebombzen.jxlatte.color.ColorFlags;
 
 import javax.imageio.ImageReadParam;
 import javax.imageio.ImageReader;
@@ -58,33 +59,59 @@ public class JXLImageReader extends ImageReader {
     public BufferedImage read(int imageIndex, ImageReadParam param) throws IOException {
         var decoder = new JXLDecoder(new ByteArrayInputStream(bytes), new JXLOptions(false));
         this.image = decoder.decode();
-
         var bufferedImage = new BufferedImage(getWidth(0), getHeight(0), BufferedImage.TYPE_INT_RGB);
         var buffer = image.getBuffer();
-        var rBuffer = buffer[0];
-        var gBuffer = buffer[1];
-        var bBuffer = buffer[2];
 
-        for (int y = 0; y < image.getHeight(); y++) {
-            var rYBuffer = rBuffer[y];
-            var gYBuffer = gBuffer[y];
-            var bYBuffer = bBuffer[y];
+        switch (image.getColorEncoding()) {
+            case ColorFlags.CE_GRAY -> {
+                var grayBuffer = buffer[0];
 
-            for (int x = 0; x < image.getWidth(); x++) {
-                int r = hdrToRgb(rYBuffer[x]);
-                int g = hdrToRgb(gYBuffer[x]);
-                int b = hdrToRgb(bYBuffer[x]);
-                int a = image.getAlphaIndex() == -1 ? 0xFF : (int) ((image.getBuffer()[3][y][x]) * 255);
+                for (int y = 0; y < image.getHeight(); y++) {
+                    var grayYBuffer = grayBuffer[y];
 
-                var argb = ((a & 0xFF) << 24) |
-                        ((r & 0xFF) << 16) |
-                        ((g & 0xFF) << 8)  |
-                        ((b & 0xFF));
-                bufferedImage.getRaster().setDataElements(x, y, 1, 1, new int[]{argb});
+                    for (int x = 0; x < image.getWidth(); x++) {
+                        int gray = hdrToRgb(grayYBuffer[x]);
+
+                        var argb = ((0xFF) << 24) |
+                                   ((gray & 0xFF) << 16) |
+                                   ((gray & 0xFF) << 8) |
+                                   ((gray & 0xFF));
+                        bufferedImage.getRaster().setDataElements(x, y, 1, 1, new int[]{argb});
+                    }
+                }
+
+                return bufferedImage;
             }
-        }
 
-        return bufferedImage;
+            case ColorFlags.CE_RGB -> {
+                var rBuffer = buffer[0];
+                var gBuffer = buffer[1];
+                var bBuffer = buffer[2];
+
+                for (int y = 0; y < image.getHeight(); y++) {
+                    var rYBuffer = rBuffer[y];
+                    var gYBuffer = gBuffer[y];
+                    var bYBuffer = bBuffer[y];
+
+                    for (int x = 0; x < image.getWidth(); x++) {
+                        int r = hdrToRgb(rYBuffer[x]);
+                        int g = hdrToRgb(gYBuffer[x]);
+                        int b = hdrToRgb(bYBuffer[x]);
+                        int a = image.getAlphaIndex() == -1 ? 0xFF : (int) ((image.getBuffer()[3][y][x]) * 255);
+
+                        var argb = ((a & 0xFF) << 24) |
+                                   ((r & 0xFF) << 16) |
+                                   ((g & 0xFF) << 8)  |
+                                   ((b & 0xFF));
+                        bufferedImage.getRaster().setDataElements(x, y, 1, 1, new int[]{argb});
+                    }
+                }
+
+                return bufferedImage;
+            }
+
+            default -> throw new RuntimeException("Unknown Color Encoding " + image.getColorEncoding());
+        }
     }
 
     private static int hdrToRgb(float hdr) {
