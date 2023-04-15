@@ -33,8 +33,8 @@ public class JXLDecoder implements Closeable {
 
     public JXLDecoder(InputStream in, JXLOptions options) {
         this(in, options, options.threads > 0 ?
-            Executors.newWorkStealingPool(options.threads) :
-            ForkJoinPool.commonPool());
+                Executors.newWorkStealingPool(options.threads) :
+                ForkJoinPool.commonPool());
     }
 
     public JXLDecoder(InputStream in, JXLOptions options, ExecutorService threadPool) {
