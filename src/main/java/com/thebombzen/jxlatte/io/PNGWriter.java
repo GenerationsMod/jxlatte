@@ -1,5 +1,7 @@
 package com.thebombzen.jxlatte.io;
 
+import java.awt.image.BufferedImage;
+import java.awt.image.WritableRaster;
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutput;
 import java.io.DataOutputStream;
@@ -12,15 +14,17 @@ import java.util.zip.Deflater;
 import java.util.zip.DeflaterOutputStream;
 
 import com.thebombzen.jxlatte.JXLImage;
+import com.thebombzen.jxlatte.JXLOptions;
 import com.thebombzen.jxlatte.JXLatte;
 import com.thebombzen.jxlatte.color.CIEPrimaries;
 import com.thebombzen.jxlatte.color.CIEXY;
 import com.thebombzen.jxlatte.color.ColorFlags;
+import com.thebombzen.jxlatte.color.ColorManagement;
 import com.thebombzen.jxlatte.util.MathHelper;
 
 public class PNGWriter {
     private int bitDepth;
-    private float[][][] buffer;
+    private WritableRaster raster;
     private DataOutputStream out;
     private int maxValue;
     private int width;
@@ -37,30 +41,32 @@ public class PNGWriter {
     private int tf;
 
     public PNGWriter(JXLImage image) {
-        this(image, false);
+        this(image, -1, false, JXLOptions.PEAK_DETECT_AUTO);
     }
 
     public PNGWriter(JXLImage image, boolean hdr) {
-        this(image, -1, hdr);
+        this(image, -1, hdr, JXLOptions.PEAK_DETECT_AUTO);
     }
 
-    public PNGWriter(JXLImage image, int bitDepth, boolean hdr) {
-        this(image, bitDepth, Deflater.DEFAULT_COMPRESSION, hdr);
+    public PNGWriter(JXLImage image, int bitDepth, boolean hdr, int peakDetect) {
+        this(image, bitDepth, Deflater.DEFAULT_COMPRESSION, hdr, peakDetect);
     }
 
-    public PNGWriter(JXLImage image, int bitDepth, int deflateLevel, boolean hdr) {
+    public PNGWriter(JXLImage image, int bitDepth, int deflateLevel, boolean hdr, int peakDetect) {
         if (bitDepth <= 0)
             bitDepth = hdr || image.getHeader().getBitDepthHeader().bitsPerSample > 8 ? 16 : 8;
         if (bitDepth != 8 && bitDepth != 16)
             throw new IllegalArgumentException("PNG only supports 8 and 16");
         this.hdr = hdr;
         boolean gray = image.getColorEncoding() == ColorFlags.CE_GRAY;
-        this.primaries = ColorFlags.getPrimaries(hdr ? ColorFlags.PRI_BT2100 : ColorFlags.PRI_SRGB);
-        this.whitePoint = ColorFlags.getWhitePoint(ColorFlags.WP_D65);
+        this.primaries = hdr ? ColorManagement.PRI_BT2100 : ColorManagement.PRI_SRGB;
+        this.whitePoint = ColorManagement.WP_D65;
         this.tf = hdr ? ColorFlags.TF_PQ : ColorFlags.TF_SRGB;
         this.iccProfile = image.getICCProfile();
-        image = iccProfile != null ? image : image.transform(primaries, whitePoint, tf);
-        this.buffer = image.getBuffer();
+        image = iccProfile != null ? image : image.transform(primaries, whitePoint, tf, peakDetect);
+        BufferedImage bufferedImage = image.asBufferedImage();
+        this.raster = bufferedImage.getRaster();
+        bufferedImage.getColorModel().coerceData(this.raster, false);
         this.bitDepth = bitDepth;
         this.maxValue = ~(~0 << bitDepth);
         this.width = image.getWidth();
@@ -138,7 +144,7 @@ public class PNGWriter {
     }
 
     private void writeSample(DataOutput dout, int x, int y, int c) throws IOException {
-        int s = MathHelper.round(buffer[c][y][x] * maxValue);
+        int s = MathHelper.round(raster.getSampleFloat(x, y, c) * maxValue);
         s = MathHelper.clamp(s, 0, maxValue);
         if (bitDepth == 8)
             dout.writeByte(s);
@@ -153,9 +159,8 @@ public class PNGWriter {
         for (int y = 0; y < height; y++) {
             dout.writeByte(0); // filter 0
             for (int x = 0; x < width; x++) {
-                for (int c = 0; c < colorChannels; c++) {
+                for (int c = 0; c < colorChannels; c++)
                     writeSample(dout, x, y, c);
-                }
                 if (alphaIndex >= 0)
                     writeSample(dout, x, y, colorChannels + alphaIndex);
             }
@@ -173,11 +178,10 @@ public class PNGWriter {
         this.out = new DataOutputStream(outputStream);
         out.writeLong(0x8950_4E47_0D0A_1A0AL); // png signature
         writeIHDR();
-        if (hdr || this.iccProfile != null) {
+        if (hdr || this.iccProfile != null)
             writeICCP();
-        } else {
+        else
             writeSRGB();
-        }
         writeIDAT();
         out.writeInt(0);
         out.writeInt(0x49_45_4E_44); // IEND

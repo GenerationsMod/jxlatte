@@ -18,6 +18,15 @@ public final class ColorManagement {
 
     private static final float[][] BRADFORD_INVERSE = MathHelper.invertMatrix3x3(BRADFORD);
 
+    public static final CIEPrimaries PRI_SRGB = ColorFlags.getPrimaries(ColorFlags.PRI_SRGB);
+    public static final CIEPrimaries PRI_BT2100 = ColorFlags.getPrimaries(ColorFlags.PRI_BT2100);
+    public static final CIEPrimaries PRI_P3 = ColorFlags.getPrimaries(ColorFlags.PRI_P3);
+
+    public static final CIEXY WP_D65 = ColorFlags.getWhitePoint(ColorFlags.WP_D65);
+    public static final CIEXY WP_D50 = ColorFlags.getWhitePoint(ColorFlags.WP_D50);
+    public static final CIEXY WP_DCI = ColorFlags.getWhitePoint(ColorFlags.WP_DCI);
+    public static final CIEXY WP_E = ColorFlags.getWhitePoint(ColorFlags.WP_E);
+
     private static float[] getXYZ(CIEXY xy) {
         validateXY(xy);
         float invY = 1.0f / xy.y;
@@ -38,6 +47,10 @@ public final class ColorManagement {
     }
 
     private static float[][] adaptWhitePoint(CIEXY targetWP, CIEXY currentWP) {
+        if (targetWP == null)
+            targetWP = WP_D50;
+        if (currentWP == null)
+            currentWP = WP_D50;
         float[] wCurrent = getXYZ(currentWP);
         float[] lmsCurrent = MathHelper.matrixMutliply(BRADFORD, wCurrent);
         float[] wTarget = getXYZ(targetWP);
@@ -50,6 +63,10 @@ public final class ColorManagement {
     }
 
     private static float[][] primariesToXYZ(CIEPrimaries primaries, CIEXY wp) {
+        if (primaries == null)
+            return null;
+        if (wp == null)
+            wp = WP_D50;
         if (wp.x < 0 || wp.x > 1 || wp.y <= 0 || wp.y > 1)
             throw new IllegalArgumentException();
         float[][] primariesTr = new float[][]{
@@ -65,12 +82,17 @@ public final class ColorManagement {
         return MathHelper.matrixMutliply(primariesMatrix, a);
     }
 
+    public static float[][] primariesToXYZD50(CIEPrimaries primaries, CIEXY wp) {
+        float[][] whitePointConv = adaptWhitePoint(null, wp);
+        return MathHelper.matrixMutliply(whitePointConv, primariesToXYZ(primaries, wp));
+    }
+
     public static float[][] getConversionMatrix(CIEPrimaries targetPrim, CIEXY targetWP,
             CIEPrimaries currentPrim, CIEXY currentWP) {
-        if (targetPrim.matches(currentPrim) && targetWP.matches(currentWP))
+        if (CIEPrimaries.matches(targetPrim, currentPrim) && CIEXY.matches(targetWP, currentWP))
             return MathHelper.matrixIdentity(3);
         float[][] whitePointConv = null;
-        if (!targetWP.matches(currentWP))
+        if (!CIEXY.matches(targetWP, currentWP))
             whitePointConv = adaptWhitePoint(targetWP, currentWP);
         float[][] forward = primariesToXYZ(currentPrim, currentWP);
         float[][] reverse = MathHelper.invertMatrix3x3(primariesToXYZ(targetPrim, targetWP));

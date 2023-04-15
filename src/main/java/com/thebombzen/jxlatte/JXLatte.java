@@ -32,7 +32,7 @@ public class JXLatte {
     private static void writePNG(String outputFilename, JXLImage image, JXLOptions options) throws IOException {
         var hdr = options.hdr == JXLOptions.HDR_AUTO ? image.isHDR() : options.hdr == JXLOptions.HDR_ON;
         int bitDepth = hdr ? 16 : options.outputDepth;
-        PNGWriter writer = new PNGWriter(image, bitDepth, options.outputCompression, hdr);
+        PNGWriter writer = new PNGWriter(image, bitDepth, options.outputCompression, hdr, options.peakDetect);
         writeImage(writer::write, outputFilename);
     }
 
@@ -49,23 +49,29 @@ public class JXLatte {
             "Options: ",
             "    --help",
             "        print this message",
+            "    --info",
+            "        output info about the input file",
+            "    --info=verbose, --verbose, --v",
+            "        be more verbose with info",
             "    --debug",
             "        turn on debugging output",
+            "",
             "    --format=<png|pfm>",
             "        write image in this output format",
             "    --png-depth=N",
             "        use N-bit output for PNG, N must be 8 or 16",
             "    --png-compression=N",
             "        use zlib level N to compress PNG output, N must be 0-9",
-            "    --info",
-            "        output info about the input file",
-            "    --info=verbose, --verbose, --v",
-            "        be more verbose with info",
             "    --png-hdr",
             "        output PNG files in HDR",
             "        (BT.2020 Primaries, D65 White Point, PQ Transfer)",
+            "    --png-peak-detect",
+            "        Run peak detection when writing SDR PNGs",
+            "",
             "    --draw-varblocks",
             "        Show varblocks for VarDCT images",
+            "    --threads=N",
+            "        Use N threads (0 for auto)",
             "",
             "If the output filename is not provided, jxlatte will discard the decoded pixels.",
         };
@@ -155,6 +161,18 @@ public class JXLatte {
                     System.exit(1);
                 }
                 return true;
+            case "png-peak-detect":
+                if (Arrays.asList("", "auto").contains(valueL)) {
+                    options.peakDetect = JXLOptions.PEAK_DETECT_AUTO;
+                } else if (Arrays.asList("yes", "true").contains(valueL)) {
+                    options.peakDetect = JXLOptions.PEAK_DETECT_ON;
+                } else if (Arrays.asList("no", "false").contains(valueL)) {
+                    options.peakDetect = JXLOptions.PEAK_DETECT_OFF;
+                } else {
+                    System.err.format("jxlatte: Unknown --png-peak-detect flag: %s%n", value);
+                    System.exit(1);
+                }
+                return true;
             case "info":
                 if (Arrays.asList("", "info", "yes", "true").contains(valueL)) {
                     options.verbosity = JXLOptions.VERBOSITY_INFO;
@@ -186,6 +204,18 @@ public class JXLatte {
                     options.renderVarblocks = false;
                 } else {
                     System.err.format("jxlatte: Unknown --draw-varblocks flag: %s%n", value);
+                    System.exit(1);
+                }
+                return true;
+            case "threads":
+                try {
+                    options.threads = Integer.parseInt(valueL);
+                } catch (NumberFormatException nfe) {
+                    System.err.format("jxlatte: Not an integer: %s%n", value);
+                    System.exit(1);
+                }
+                if (options.threads < 0 || options.threads > 65536) {
+                    System.err.format("jxlatte: Illegal number of threads: %s%n", value);
                     System.exit(1);
                 }
                 return true;
@@ -308,5 +338,9 @@ public class JXLatte {
             if (options.debug) e.printStackTrace();
             System.exit(2);
         }
+    }
+
+    private JXLatte() {
+
     }
 }
