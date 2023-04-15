@@ -8,11 +8,20 @@ version = "1.1.0"
 
 publishing {
     publications {
-        myLib(MavenPublication) {
-            from components.java
+        create(MavenPublication) {
+            from(components["java"])
         }
     }
     repositories {
         mavenLocal()
+        maven {
+            name = "PokeModRepo"
+            url = uri("https://maven.thepokecraftmod.com/releases")
+            credentials {
+                username = project.properties["pokecraftLogin"]?.toString() ?: findProperty("REPO_LOGIN").toString()
+                password = project.properties["pokecraftToken"]?.toString() ?: findProperty("REPO_PASSWORD").toString()
+            }
+        }
+
     }
 }
