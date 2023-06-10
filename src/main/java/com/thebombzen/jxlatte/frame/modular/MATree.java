@@ -79,8 +79,7 @@ public class MATree {
 
         this.stream = new EntropyStream(reader, (nodes.size() + 1) / 2);
 
-        for (int n = 0; n < nodes.size(); n++) {
-            MATree node = nodes.get(n);
+        for (MATree node : nodes) {
             node.stream = this.stream;
             if (!node.isLeafNode()) {
                 node.leftChildNode = nodes.get(node.leftChildIndex);
@@ -106,35 +105,27 @@ public class MATree {
 
     public MATree compactify(int channelIndex, int streamIndex) {
         int prop;
-        switch (this.property) {
-            case 0:
-                prop = channelIndex;
-                break;
-            case 1:
-                prop = streamIndex;
-                break;
-            default:
-                return this;
-        }
+	    switch (this.property) {
+		    case 0 -> prop = channelIndex;
+		    case 1 -> prop = streamIndex;
+		    default -> {
+			    return this;
+		    }
+	    }
         MATree branch = prop > this.value ? leftChildNode : rightChildNode;
         return branch.compactify(channelIndex, streamIndex);
     }
 
     public MATree compactify(int channelIndex, int streamIndex, int y) {
         int prop;
-        switch (this.property) {
-            case 0:
-                prop = channelIndex;
-                break;
-            case 1:
-                prop = streamIndex;
-                break;
-            case 2:
-                prop = y;
-                break;
-            default:
-                return this;
-        }
+	    switch (this.property) {
+		    case 0 -> prop = channelIndex;
+		    case 1 -> prop = streamIndex;
+		    case 2 -> prop = y;
+		    default -> {
+			    return this;
+		    }
+	    }
         MATree branch = prop > this.value ? leftChildNode : rightChildNode;
         return branch.compactify(channelIndex, streamIndex, y);
     }

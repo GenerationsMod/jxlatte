@@ -71,10 +71,10 @@ public class EntropyStream {
         }
 
         int numClusters = 0;
-        for (int i = 0; i < numDists; i++) {
-            if (clusterMap[i] >= numClusters)
-                numClusters = clusterMap[i] + 1;
-        }
+	    for (int j : clusterMap) {
+		    if (j >= numClusters)
+			    numClusters = j + 1;
+	    }
         if (numClusters > maxClusters)
             throw new InvalidBitstreamException("Too many clusters");
         

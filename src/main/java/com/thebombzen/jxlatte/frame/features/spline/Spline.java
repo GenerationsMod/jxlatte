@@ -2,6 +2,7 @@ package com.thebombzen.jxlatte.frame.features.spline;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 import com.thebombzen.jxlatte.frame.Frame;
 import com.thebombzen.jxlatte.frame.LFGlobal;
@@ -30,9 +31,7 @@ public class Spline {
         }
         IntPoint[] extended = new IntPoint[controlPoints.length + 2];
         extended[0] = controlPoints[0].plus(controlPoints[0]).minus(controlPoints[1]);
-        for (int i = 0; i < controlPoints.length; i++) {
-            extended[i + 1] = controlPoints[i];
-        }
+        System.arraycopy(controlPoints, 0, extended, 1, controlPoints.length);
         extended[extended.length - 1] = controlPoints[controlPoints.length - 1].plus(controlPoints[controlPoints.length - 1]).minus(controlPoints[controlPoints.length - 2]);
         FloatPoint[] upsampled = new FloatPoint[16 * (extended.length - 3) + 1];
         TaskList<Void> tasks = new TaskList<>(flowHelper.getThreadPool());
@@ -95,7 +94,7 @@ public class Spline {
                 nextID++;
             }
         }
-        return allSamples.stream().toArray(SplineArc[]::new);
+        return allSamples.toArray(SplineArc[]::new);
     }
 
     private static float fourierICT(float[] coeffs, float t) {
@@ -111,7 +110,7 @@ public class Spline {
         coeffY = new float[32];
         coeffB = new float[32];
         coeffSigma = new float[32];
-        float quantAdjust = lfGlobal.splines.quantAdjust / 8f;
+        float quantAdjust = Objects.requireNonNull(lfGlobal.splines).quantAdjust / 8f;
         float invQa = quantAdjust >= 0 ? 1f / (1f + quantAdjust) : 1.0f - quantAdjust;
         float yAdjust = 0.106066017f * invQa;
         float xAdjust = 0.005939697f * invQa;
@@ -160,8 +159,8 @@ public class Spline {
                             float diffX = x - arc.location.x;
                             float diffY = y - arc.location.y;
                             float distance = (float)Math.sqrt(diffX * diffX + diffY * diffY);
-                            float factor = MathHelper.erf((0.5f * distance + (float)MathHelper.SQRT_F) * inverseSigma);
-                            factor -= MathHelper.erf((0.5f * distance - (float)MathHelper.SQRT_F) * inverseSigma);
+                            float factor = MathHelper.erf((0.5f * distance + MathHelper.SQRT_F) * inverseSigma);
+                            factor -= MathHelper.erf((0.5f * distance - MathHelper.SQRT_F) * inverseSigma);
                             float extra = 0.25f * values[c] * sigma * factor * factor;
                             synchronized(buffer) {
                                 buffer[x] += extra;

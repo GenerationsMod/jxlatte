@@ -238,9 +238,7 @@ public class JXLImage {
 
     private JXLImage transfer(DoubleUnaryOperator op) {
         JXLImage image = new JXLImage(this);
-        flowHelper.parallelIterate(imageHeader.getColorChannelCount(), new IntPoint(width, height), (c, x, y) -> {
-            image.raster.setSample(x, y, c, op.applyAsDouble(this.raster.getSampleFloat(x, y, c)));
-        });
+        flowHelper.parallelIterate(imageHeader.getColorChannelCount(), new IntPoint(width, height), (c, x, y) -> image.raster.setSample(x, y, c, op.applyAsDouble(this.raster.getSampleFloat(x, y, c))));
         return image;
     }
 

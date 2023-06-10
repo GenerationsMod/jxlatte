@@ -100,12 +100,14 @@ public class JXLatte {
         String keyL = key.toLowerCase();
         String valueL = value.toLowerCase();
         switch (keyL) {
-            case "":
+            case "" -> {
                 return true;
-            case "help":
+            }
+            case "help" -> {
                 usage(true);
                 return true;
-            case "format":
+            }
+            case "format" -> {
                 if (valueL.equals("png")) {
                     options.outputFormat = JXLOptions.OUTPUT_PNG;
                 } else if (valueL.equals("pfm")) {
@@ -115,7 +117,8 @@ public class JXLatte {
                     System.exit(1);
                 }
                 return true;
-            case "debug":
+            }
+            case "debug" -> {
                 if (Arrays.asList("", "yes", "true").contains(valueL)) {
                     options.debug = true;
                 } else if (Arrays.asList("no", "false").contains(valueL)) {
@@ -125,7 +128,8 @@ public class JXLatte {
                     System.exit(1);
                 }
                 return true;
-            case "png-hdr":
+            }
+            case "png-hdr" -> {
                 if (Arrays.asList("", "auto").contains(valueL)) {
                     options.hdr = JXLOptions.HDR_AUTO;
                 } else if (Arrays.asList("yes", "true", "hdr").contains(valueL)) {
@@ -137,7 +141,8 @@ public class JXLatte {
                     System.exit(1);
                 }
                 return true;
-            case "png-depth":
+            }
+            case "png-depth" -> {
                 try {
                     options.outputDepth = Integer.parseInt(valueL);
                 } catch (NumberFormatException nfe) {
@@ -149,7 +154,8 @@ public class JXLatte {
                     System.exit(1);
                 }
                 return true;
-            case "png-compression":
+            }
+            case "png-compression" -> {
                 try {
                     options.outputCompression = Integer.parseInt(valueL);
                 } catch (NumberFormatException nfe) {
@@ -161,7 +167,8 @@ public class JXLatte {
                     System.exit(1);
                 }
                 return true;
-            case "png-peak-detect":
+            }
+            case "png-peak-detect" -> {
                 if (Arrays.asList("", "auto").contains(valueL)) {
                     options.peakDetect = JXLOptions.PEAK_DETECT_AUTO;
                 } else if (Arrays.asList("yes", "true").contains(valueL)) {
@@ -173,7 +180,8 @@ public class JXLatte {
                     System.exit(1);
                 }
                 return true;
-            case "info":
+            }
+            case "info" -> {
                 if (Arrays.asList("", "info", "yes", "true").contains(valueL)) {
                     options.verbosity = JXLOptions.VERBOSITY_INFO;
                 } else if (Arrays.asList("no", "false").contains(valueL)) {
@@ -187,7 +195,8 @@ public class JXLatte {
                     System.exit(1);
                 }
                 return true;
-            case "verbose":
+            }
+            case "verbose" -> {
                 if (Arrays.asList("", "yes", "true", "v", "verbose").contains(valueL)) {
                     options.verbosity = JXLOptions.VERBOSITY_VERBOSE;
                 } else if (Arrays.asList("no", "false").contains(valueL)) {
@@ -197,7 +206,8 @@ public class JXLatte {
                     System.exit(1);
                 }
                 return true;
-            case "draw-varblocks":
+            }
+            case "draw-varblocks" -> {
                 if (Arrays.asList("", "yes", "true").contains(valueL)) {
                     options.renderVarblocks = true;
                 } else if (Arrays.asList("no", "false").contains(valueL)) {
@@ -207,7 +217,8 @@ public class JXLatte {
                     System.exit(1);
                 }
                 return true;
-            case "threads":
+            }
+            case "threads" -> {
                 try {
                     options.threads = Integer.parseInt(valueL);
                 } catch (NumberFormatException nfe) {
@@ -219,10 +230,12 @@ public class JXLatte {
                     System.exit(1);
                 }
                 return true;
-            default:
+            }
+            default -> {
                 System.err.format("jxlatte: Unknown arg: %s%n", arg);
                 System.exit(1);
                 return true;
+            }
         }
     }
 

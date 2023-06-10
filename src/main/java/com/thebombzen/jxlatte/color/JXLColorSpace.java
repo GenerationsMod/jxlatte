@@ -1,6 +1,7 @@
 package com.thebombzen.jxlatte.color;
 
 import java.awt.color.ColorSpace;
+import java.util.Objects;
 import java.util.function.DoubleUnaryOperator;
 
 import com.thebombzen.jxlatte.util.MathHelper;
@@ -31,7 +32,7 @@ public class JXLColorSpace extends ColorSpace {
     }
 
     public JXLColorSpace(int primaries, int whitePoint, int transfer) {
-        this(ColorFlags.getPrimaries(primaries), ColorFlags.getWhitePoint(whitePoint), transfer);
+        this(Objects.requireNonNull(ColorFlags.getPrimaries(primaries)), Objects.requireNonNull(ColorFlags.getWhitePoint(whitePoint)), transfer);
     }
 
     @Override

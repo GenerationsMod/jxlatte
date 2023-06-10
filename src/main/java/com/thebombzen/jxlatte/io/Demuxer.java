@@ -69,7 +69,7 @@ public class Demuxer implements ExceptionalSupplier<byte[]>, Closeable {
             if (boxSize == 1) {
                 if (IOHelper.readFully(in, boxSizeArray, 0, 8) != 0)
                     throw new InvalidBitstreamException("Truncated extended size");
-                    boxSize = makeTag(boxSizeArray, 0, 8);
+                boxSize = makeTag(boxSizeArray, 0, 8);
                 if (boxSize > 0)
                     boxSize -= 8;
             }

@@ -79,19 +79,19 @@ public class HFMetadata {
             strings[2*(block.y + dh)][2*(block.x + dw)] = "+";
         }
         StringBuilder builder = new StringBuilder();
-        for (int y = 0; y < strings.length; y++) {
-            for (int x = 0; x < strings[y].length; x++) {
-                String s = strings[y][x];
-                if (s == null) {
-                    if (x % 2 == 0)
-                        s = " ";
-                    else
-                        s = "   ";
-                }
-                builder.append(s);
-            }
-            builder.append(String.format("%n"));
-        }
+	    for (String[] string : strings) {
+		    for (int x = 0; x < string.length; x++) {
+			    String s = string[x];
+			    if (s == null) {
+				    if (x % 2 == 0)
+					    s = " ";
+				    else
+					    s = "   ";
+			    }
+			    builder.append(s);
+		    }
+		    builder.append(String.format("%n"));
+	    }
         return builder.toString();
     }
 

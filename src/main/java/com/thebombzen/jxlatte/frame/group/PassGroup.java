@@ -132,15 +132,11 @@ public class PassGroup {
         }
         scratchBlock[0][0][0] = coeffs[p.y][p.x] - coeffs[p.y + 1][p.x];
         for (int iy = 0; iy < 4; iy++) {
-            for (int ix = (iy == 0 ? 1 : 0); ix < 8; ix++) {
-                scratchBlock[0][iy][ix] = coeffs[p.y + 1 + iy * 2][p.x + ix];
-            }
+	        System.arraycopy(coeffs[p.y + 1 + iy * 2], p.x + (iy == 0 ? 1 : 0), scratchBlock[0][iy], (iy == 0 ? 1 : 0), 8 - (iy == 0 ? 1 : 0));
         }
         MathHelper.inverseDCT2D(scratchBlock[0], scratchBlock[1], IntPoint.ZERO, IntPoint.ZERO, new IntPoint(8, 4), scratchBlock[2], scratchBlock[3], false);
         for (int iy = 0; iy < 4; iy++) {
-            for (int ix = 0; ix < 8; ix++) {
-                buffer[ps.y + (flipY == 1 ? 0 : 4) + iy][ps.x + ix] = scratchBlock[1][iy][ix];
-            }
+	        System.arraycopy(scratchBlock[1][iy], 0, buffer[ps.y + (flipY == 1 ? 0 : 4) + iy], ps.x + 0, 8);
         }
     }
 
@@ -198,103 +194,100 @@ public class PassGroup {
                 float coeff0, coeff1;
                 float[] lfs = new float[2];
                 IntPoint size = varblock.sizeInPixels();
-                switch (tt.transformMethod) {
-                    case TransformType.METHOD_DCT:
-                        MathHelper.inverseDCT2D(coeffs[i][c], frameBuffer[c], IntPoint.ZERO, pixelPosInFrame, size, scratchBlock[0], scratchBlock[1], false);
-                        break;
-                    case TransformType.METHOD_DCT8_4:
-                        coeff0 = coeffs[i][c][0][0];
-                        coeff1 = coeffs[i][c][1][0];
-                        lfs[0] = coeff0 + coeff1;
-                        lfs[1] = coeff0 - coeff1;
-                        for (int x = 0; x < 2; x++) {
-                            scratchBlock[0][0][0] = lfs[x];
-                            for (int iy = 0; iy < 4; iy++) {
-                                for (int ix = (iy == 0 ? 1 : 0); ix < 8; ix++) {
-                                    scratchBlock[0][iy][ix] = coeffs[i][c][x + iy * 2][ix];
-                                }
-                            }
-                            MathHelper.inverseDCT2D(scratchBlock[0], frameBuffer[c], IntPoint.ZERO,
-                                new IntPoint(4 * x, 0).plus(pixelPosInFrame), new IntPoint(8, 4),
-                                scratchBlock[1], scratchBlock[2], true);
-                        }
-                        break;
-                    case TransformType.METHOD_DCT4_8:
-                        coeff0 = coeffs[i][c][0][0];
-                        coeff1 = coeffs[i][c][1][0];
-                        lfs[0] = coeff0 + coeff1;
-                        lfs[1] = coeff0 - coeff1;
-                        for (int y = 0; y < 2; y++) {
-                            scratchBlock[0][0][0] = lfs[y];
-                            for (int iy = 0; iy < 4; iy++) {
-                                for (int ix = (iy == 0 ? 1 : 0); ix < 8; ix++) {
-                                    scratchBlock[0][iy][ix] = coeffs[i][c][y + iy * 2][ix];
-                                }
-                            }
-                            MathHelper.inverseDCT2D(scratchBlock[0], frameBuffer[c], IntPoint.ZERO, new IntPoint(0, 4 * y).plus(pixelPosInFrame), new IntPoint(8, 4), scratchBlock[1], scratchBlock[2], false);
-                        }
-                        break;
-                    case TransformType.METHOD_AFV:
-                        invertAFV(coeffs[i][c], frameBuffer[c], varblock, pixelPosInFrame, scratchBlock);
-                        break;
-                    case TransformType.METHOD_DCT2:
-                        auxDCT2(coeffs[i][c], scratchBlock[0], IntPoint.ZERO, IntPoint.ZERO, 2);
-                        auxDCT2(scratchBlock[0], scratchBlock[1], IntPoint.ZERO, IntPoint.ZERO, 4);
-                        auxDCT2(scratchBlock[1], frameBuffer[c], IntPoint.ZERO, pixelPosInFrame, 8);
-                        break;
-                    case TransformType.METHOD_HORNUSS:
-                        auxDCT2(coeffs[i][c], scratchBlock[1], IntPoint.ZERO, IntPoint.ZERO, 2);
-                        for (int y = 0; y < 2; y++) {
-                            for (int x = 0; x < 2; x++) {
-                                float blockLF = scratchBlock[1][y][x];
-                                float residual = 0f;
-                                for (int iy = 0; iy < 4; iy++) {
-                                    for (int ix = (iy == 0 ? 1 : 0); ix < 4; ix++) {
-                                        residual += coeffs[i][c][y + iy * 2][x + ix * 2];
-                                    }
-                                }
-                                scratchBlock[0][4 * y + 1][4 * x + 1] = blockLF - residual / 16f;
-                                for (int iy = 0; iy < 4; iy++) {
-                                    for (int ix = 0; ix < 4; ix++) {
-                                        if (ix == 1 && iy == 1)
-                                            continue;
-                                        scratchBlock[0][y * 4 + iy][x * 4 + ix] = coeffs[i][c][y + iy * 2][x + ix * 2]
-                                            + scratchBlock[0][4 * y + 1][4 * x + 1];
+	            switch (tt.transformMethod) {
+		            case TransformType.METHOD_DCT ->
+				            MathHelper.inverseDCT2D(coeffs[i][c], frameBuffer[c], IntPoint.ZERO, pixelPosInFrame, size, scratchBlock[0], scratchBlock[1], false);
+		            case TransformType.METHOD_DCT8_4 -> {
+			            coeff0 = coeffs[i][c][0][0];
+			            coeff1 = coeffs[i][c][1][0];
+			            lfs[0] = coeff0 + coeff1;
+			            lfs[1] = coeff0 - coeff1;
+			            for (int x = 0; x < 2; x++) {
+				            scratchBlock[0][0][0] = lfs[x];
+				            for (int iy = 0; iy < 4; iy++) {
+					            for (int ix = (iy == 0 ? 1 : 0); ix < 8; ix++) {
+						            scratchBlock[0][iy][ix] = coeffs[i][c][x + iy * 2][ix];
+					            }
+				            }
+				            MathHelper.inverseDCT2D(scratchBlock[0], frameBuffer[c], IntPoint.ZERO,
+						            new IntPoint(4 * x, 0).plus(pixelPosInFrame), new IntPoint(8, 4),
+						            scratchBlock[1], scratchBlock[2], true);
+			            }
+		            }
+		            case TransformType.METHOD_DCT4_8 -> {
+			            coeff0 = coeffs[i][c][0][0];
+			            coeff1 = coeffs[i][c][1][0];
+			            lfs[0] = coeff0 + coeff1;
+			            lfs[1] = coeff0 - coeff1;
+			            for (int y = 0; y < 2; y++) {
+				            scratchBlock[0][0][0] = lfs[y];
+				            for (int iy = 0; iy < 4; iy++) {
+					            for (int ix = (iy == 0 ? 1 : 0); ix < 8; ix++) {
+						            scratchBlock[0][iy][ix] = coeffs[i][c][y + iy * 2][ix];
+					            }
+				            }
+				            MathHelper.inverseDCT2D(scratchBlock[0], frameBuffer[c], IntPoint.ZERO, new IntPoint(0, 4 * y).plus(pixelPosInFrame), new IntPoint(8, 4), scratchBlock[1], scratchBlock[2], false);
+			            }
+		            }
+		            case TransformType.METHOD_AFV ->
+				            invertAFV(coeffs[i][c], frameBuffer[c], varblock, pixelPosInFrame, scratchBlock);
+		            case TransformType.METHOD_DCT2 -> {
+			            auxDCT2(coeffs[i][c], scratchBlock[0], IntPoint.ZERO, IntPoint.ZERO, 2);
+			            auxDCT2(scratchBlock[0], scratchBlock[1], IntPoint.ZERO, IntPoint.ZERO, 4);
+			            auxDCT2(scratchBlock[1], frameBuffer[c], IntPoint.ZERO, pixelPosInFrame, 8);
+		            }
+		            case TransformType.METHOD_HORNUSS -> {
+			            auxDCT2(coeffs[i][c], scratchBlock[1], IntPoint.ZERO, IntPoint.ZERO, 2);
+			            for (int y = 0; y < 2; y++) {
+				            for (int x = 0; x < 2; x++) {
+					            float blockLF = scratchBlock[1][y][x];
+					            float residual = 0f;
+					            for (int iy = 0; iy < 4; iy++) {
+						            for (int ix = (iy == 0 ? 1 : 0); ix < 4; ix++) {
+							            residual += coeffs[i][c][y + iy * 2][x + ix * 2];
+						            }
+					            }
+					            scratchBlock[0][4 * y + 1][4 * x + 1] = blockLF - residual / 16f;
+					            for (int iy = 0; iy < 4; iy++) {
+						            for (int ix = 0; ix < 4; ix++) {
+							            if (ix == 1 && iy == 1)
+								            continue;
+							            scratchBlock[0][y * 4 + iy][x * 4 + ix] = coeffs[i][c][y + iy * 2][x + ix * 2]
+									            + scratchBlock[0][4 * y + 1][4 * x + 1];
 
-                                    }
-                                }
-                                scratchBlock[0][4 * y][4 * x] = coeffs[i][c][y + 2][x + 2]
-                                    + scratchBlock[0][4 * y + 1][4 * x + 1];
-                            }
-                        }
-                        layBlock(scratchBlock[0], frameBuffer[c], IntPoint.ZERO, pixelPosInFrame, size);
-                        break;
-                    case TransformType.METHOD_DCT4:
-                        auxDCT2(coeffs[i][c], scratchBlock[1], IntPoint.ZERO, IntPoint.ZERO, 2);
-                        for (int y = 0; y < 2; y++) {
-                            for (int x = 0; x < 2; x++) {
-                                scratchBlock[0][0][0] = scratchBlock[1][y][x];
-                                for (int iy = 0; iy < 4; iy++) {
-                                    for (int ix = (iy == 0 ? 1 : 0); ix < 4; ix++) {
-                                        scratchBlock[0][iy][ix] = coeffs[i][c][x + ix * 2][y + iy * 2];
-                                    }
-                                }
-                                // we're already using scratchblock[1] for the auxDCT2 coordiantes
-                                // but we're putting these far away at (8, 8) so there's no overlap
-                                MathHelper.inverseDCT2D(scratchBlock[0], scratchBlock[1], IntPoint.ZERO,
-                                    new IntPoint(8), new IntPoint(4), scratchBlock[2], scratchBlock[3], false);
-                                for (int iy = 0; iy < 4; iy++) {
-                                    for (int ix = 0; ix < 4; ix++) {
-                                        frameBuffer[c][pixelPosInFrame.y + 4*y + iy][pixelPosInFrame.x + 4*x + ix]
-                                            = scratchBlock[1][8 + iy][8 + ix];
-                                    }
-                                }
-                            }
-                        }
-                        break;
-                    default:
-                        throw new UnsupportedOperationException("Transform not implemented: " + tt);
-                }
+						            }
+					            }
+					            scratchBlock[0][4 * y][4 * x] = coeffs[i][c][y + 2][x + 2]
+							            + scratchBlock[0][4 * y + 1][4 * x + 1];
+				            }
+			            }
+			            layBlock(scratchBlock[0], frameBuffer[c], IntPoint.ZERO, pixelPosInFrame, size);
+		            }
+		            case TransformType.METHOD_DCT4 -> {
+			            auxDCT2(coeffs[i][c], scratchBlock[1], IntPoint.ZERO, IntPoint.ZERO, 2);
+			            for (int y = 0; y < 2; y++) {
+				            for (int x = 0; x < 2; x++) {
+					            scratchBlock[0][0][0] = scratchBlock[1][y][x];
+					            for (int iy = 0; iy < 4; iy++) {
+						            for (int ix = (iy == 0 ? 1 : 0); ix < 4; ix++) {
+							            scratchBlock[0][iy][ix] = coeffs[i][c][x + ix * 2][y + iy * 2];
+						            }
+					            }
+					            // we're already using scratchblock[1] for the auxDCT2 coordiantes
+					            // but we're putting these far away at (8, 8) so there's no overlap
+					            MathHelper.inverseDCT2D(scratchBlock[0], scratchBlock[1], IntPoint.ZERO,
+							            new IntPoint(8), new IntPoint(4), scratchBlock[2], scratchBlock[3], false);
+					            for (int iy = 0; iy < 4; iy++) {
+						            for (int ix = 0; ix < 4; ix++) {
+							            frameBuffer[c][pixelPosInFrame.y + 4 * y + iy][pixelPosInFrame.x + 4 * x + ix]
+									            = scratchBlock[1][8 + iy][8 + ix];
+						            }
+					            }
+				            }
+			            }
+		            }
+		            default -> throw new UnsupportedOperationException("Transform not implemented: " + tt);
+	            }
             }
         }
     }

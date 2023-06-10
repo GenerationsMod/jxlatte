@@ -7,6 +7,9 @@ plugins {
 group = "com.thebombzen"
 version = "1.1.0"
 
+repositories.mavenCentral()
+dependencies.compileOnly("org.jetbrains:annotations:24.0.1")
+
 publishing {
     publications.create<MavenPublication>("mavenCommon") {
         artifactId = "${project.properties["archives_base_name"]}" + "-Common"

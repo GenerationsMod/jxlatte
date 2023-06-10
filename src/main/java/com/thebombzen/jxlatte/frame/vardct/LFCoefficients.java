@@ -109,13 +109,13 @@ public class LFCoefficients {
                 }
             }
         }
-        for (int y = 0; y < gap.length; y++) {
-            if (gap[y] == null)
-                continue;
-            final float[] gy = gap[y];
-            for (int x = 0; x < gy.length; x++)
-                gy[x] = Math.max(0f, 3f - 4f * gy[x]);
-        }
+	    for (float[] floats : gap) {
+		    if (floats == null)
+			    continue;
+		    final float[] gy = floats;
+		    for (int x = 0; x < gy.length; x++)
+			    gy[x] = Math.max(0f, 3f - 4f * gy[x]);
+	    }
         for (int i = 0; i < 3; i++) {
             final float[][] co = coeff[i];
             dequantLFCoeff[i] = new float[co.length][];
@@ -169,10 +169,10 @@ public class LFCoefficients {
         for (int i = 0; i < 3; i++) {
             final IntPoint shifted = blockPos.shiftRight(upsampling[i]);
             final int[] hft = hfctx.lfThresholds[i];
-            for (int j = 0; j < hft.length; j++) {
-                if (lfQuant[Frame.cMap[i]][shifted.y][shifted.x] > hft[j])
-                    index[i]++;
-            }
+	        for (int k : hft) {
+		        if (lfQuant[Frame.cMap[i]][shifted.y][shifted.x] > k)
+			        index[i]++;
+	        }
         }
 
         int lfIndex = index[0];

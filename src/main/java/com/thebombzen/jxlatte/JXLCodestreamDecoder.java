@@ -32,52 +32,59 @@ public class JXLCodestreamDecoder {
         float[][] dest = orientation > 4 ? new float[size.x][size.y]
             : orientation > 1 ? new float[size.y][size.x] : null;
         switch (orientation) {
-            case 1:
+            case 1 -> {
                 return src;
-            case 2:
+            }
+            case 2 -> {
                 // flip horizontally
                 flowHelper.parallelIterate(size, p -> {
                     dest[p.y][size.x - 1 - p.x] = src[p.y][p.x];
                 });
                 return dest;
-            case 3:
+            }
+            case 3 -> {
                 // rotate 180 degrees
                 flowHelper.parallelIterate(size, p -> {
                     dest[size.y - 1 - p.y][size.x - 1 - p.x] = src[p.y][p.x];
                 });
                 return dest;
-            case 4:
+            }
+            case 4 -> {
                 // flip vertically
                 flowHelper.parallelIterate(size, p -> {
                     dest[size.y - 1 - p.y][p.x] = src[p.y][p.x];
                 });
                 return dest;
-            case 5:
+            }
+            case 5 -> {
                 // transpose
                 flowHelper.parallelIterate(size, p -> {
                     dest[p.x][p.y] = src[p.y][p.x];
                 });
                 return dest;
-            case 6:
+            }
+            case 6 -> {
                 // rotate clockwise
                 flowHelper.parallelIterate(size, p -> {
                     dest[p.x][size.y - 1 - p.y] = src[p.y][p.x];
                 });
                 return dest;
-            case 7:
+            }
+            case 7 -> {
                 // skew transpose
                 flowHelper.parallelIterate(size, p -> {
                     dest[size.x - 1 - p.x][size.y - 1 - p.y] = src[p.y][p.x];
                 });
                 return dest;
-            case 8:
+            }
+            case 8 -> {
                 // rotate counterclockwise
                 flowHelper.parallelIterate(size, p -> {
                     dest[size.x - 1 - p.x][p.y] = src[p.y][p.x];
                 });
                 return dest;
-            default:
-                throw new IllegalStateException("Challenge complete how did we get here");
+            }
+            default -> throw new IllegalStateException("Challenge complete how did we get here");
         }
     }
 
@@ -102,8 +109,7 @@ public class JXLCodestreamDecoder {
         int colorChannels = imageHeader.getColorChannelCount();
         int extraChannels = imageHeader.getExtraChannelCount();
         Patch[] patches = frame.getLFGlobal().patches;
-        for (int i = 0; i < patches.length; i++) {
-            Patch patch = patches[i];
+        for (Patch patch : patches) {
             if (patch.ref > 3)
                 throw new InvalidBitstreamException("Patch out of range");
             float[][][] refBuffer = references[patch.ref];
@@ -117,10 +123,10 @@ public class JXLCodestreamDecoder {
                 if (x0 < 0 || y0 < 0)
                     throw new InvalidBitstreamException("Patch size out of bounds");
                 if (patch.height + patch.origin.y > refBuffer[1].length
-                    || patch.width + patch.origin.x > refBuffer[1][0].length)
+                        || patch.width + patch.origin.x > refBuffer[1][0].length)
                     throw new InvalidBitstreamException("Patch too large");
                 if (patch.height + y0 > frame.getFrameHeader().height
-                    || patch.width + x0 > frame.getFrameHeader().width)
+                        || patch.width + x0 > frame.getFrameHeader().width)
                     throw new InvalidBitstreamException("Patch size out of bounds");
                 for (int d = 0; d < colorChannels + extraChannels; d++) {
                     int c = d < colorChannels ? 0 : d - colorChannels + 1;
@@ -128,13 +134,13 @@ public class JXLCodestreamDecoder {
                     if (info.mode == 0)
                         continue;
                     boolean premult = imageHeader.hasAlpha()
-                        ? imageHeader.getExtraChannelInfo(info.alphaChannel).alphaAssociated
-                        : true;
+                            ? imageHeader.getExtraChannelInfo(info.alphaChannel).alphaAssociated
+                            : true;
                     boolean isAlpha = c > 0 &&
-                        imageHeader.getExtraChannelInfo(c - 1).type == ExtraChannelType.ALPHA;
+                            imageHeader.getExtraChannelInfo(c - 1).type == ExtraChannelType.ALPHA;
                     if (info.mode > 3 && header.upsampling > 1 && c > 0 &&
                             header.ecUpsampling[c - 1] << imageHeader.getExtraChannelInfo(c - 1).dimShift
-                            != header.upsampling) {
+                                    != header.upsampling) {
                         throw new InvalidBitstreamException("Alpha channel upsampling mismatch during patches");
                     }
                     for (int y = 0; y < patch.height; y++) {
@@ -148,48 +154,30 @@ public class JXLCodestreamDecoder {
                             float alpha = 0f, newAlpha = 0f, oldAlpha = 0f;
                             if (c > 3) {
                                 newAlpha = imageHeader.hasAlpha()
-                                ? refBuffer[colorChannels + info.alphaChannel][newY][newX]
-                                    : 1.0f;
+                                        ? refBuffer[colorChannels + info.alphaChannel][newY][newX]
+                                        : 1.0f;
                                 oldAlpha = imageHeader.hasAlpha()
-                                    ? frameBuffer[colorChannels + info.alphaChannel][oldY][oldX]
-                                    : 1.0f;
+                                        ? frameBuffer[colorChannels + info.alphaChannel][oldY][oldX]
+                                        : 1.0f;
                                 if (c > 5 || isAlpha || !premult) {
                                     alpha = oldAlpha + newAlpha * (1 - oldAlpha);
                                     if (info.clamp)
                                         alpha = MathHelper.clamp(alpha, 0.0f, 1.0f);
                                 }
                             }
-                            float sample;
-                            switch (info.mode) {
-                                case 0:
-                                    sample = oldSample;
-                                    break;
-                                case 1:
-                                    sample = newSample;
-                                    break;
-                                case 2:
-                                    sample = oldSample + newSample;
-                                    break;
-                                case 3:
-                                    sample = oldSample * newSample;
-                                    break;
-                                case 4:
-                                    sample = isAlpha ? alpha : premult ? newSample + oldSample * (1 - newAlpha)
+                            float sample = switch (info.mode) {
+                                case 0 -> oldSample;
+                                case 1 -> newSample;
+                                case 2 -> oldSample + newSample;
+                                case 3 -> oldSample * newSample;
+                                case 4 -> isAlpha ? alpha : premult ? newSample + oldSample * (1 - newAlpha)
                                         : (newSample * newAlpha + oldSample * oldAlpha * (1 - newAlpha)) / alpha;
-                                    break;
-                                case 5:
-                                    sample = isAlpha ? alpha : premult ? oldSample + newSample * (1 - newAlpha)
+                                case 5 -> isAlpha ? alpha : premult ? oldSample + newSample * (1 - newAlpha)
                                         : (oldSample * newAlpha + newSample * oldAlpha * (1 - newAlpha)) / alpha;
-                                    break;
-                                case 6:
-                                    sample = isAlpha ? alpha : oldSample + alpha * newSample;
-                                    break;
-                                case 7:
-                                    sample = isAlpha ? alpha : newSample + alpha * oldSample;
-                                    break;
-                                default:
-                                    throw new IllegalStateException("Challenge complete how did we get here");
-                            }
+                                case 6 -> isAlpha ? alpha : oldSample + alpha * newSample;
+                                case 7 -> isAlpha ? alpha : newSample + alpha * oldSample;
+                                default -> throw new IllegalStateException("Challenge complete how did we get here");
+                            };
                             frameBuffer[d][oldY][oldX] = sample;
                         }
                     }

@@ -156,7 +156,7 @@ public class ImageHeader {
     public static ImageHeader parse(Bitreader reader, int level) throws IOException {
         ImageHeader header = new ImageHeader();
         if (reader.readBits(16) != CODESTREAM_HEADER)
-            throw new InvalidBitstreamException(String.format("Not a JXL Codestream: 0xFF0A magic mismatch"));
+            throw new InvalidBitstreamException("Not a JXL Codestream: 0xFF0A magic mismatch");
         header.setLevel(level);
         header.size = new SizeHeader(reader, level);
 
@@ -476,7 +476,7 @@ public class ImageHeader {
         int commandSize = commandReader.readICCVarint();
         // readICCVarint is always a multiple of bytes
         int commandStart = (int)(commandReader.getBitsCount() >> 3);
-        int dataStart = (int)(commandStart + commandSize);
+        int dataStart = commandStart + commandSize;
         Bitreader dataReader = new Bitreader(new ByteArrayInputStream(
             encodedICC, dataStart, encodedICC.length - dataStart));
         int headerSize = Math.min(128, outputSize);

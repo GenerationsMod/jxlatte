@@ -101,7 +101,7 @@ public enum TransformType {
         return new IntPoint(dctSelectWidth, dctSelectHeight);
     }
 
-    private TransformType(String name, int type, int parameterIndex, int dctSelectHeight, int dctSelectWidth,
+    TransformType(String name, int type, int parameterIndex, int dctSelectHeight, int dctSelectWidth,
             int blockHeight, int blockWidth, int matrixHeight, int matrixWidth, int orderID, int transformMethod) {
         this.name = name;
         this.type = type;

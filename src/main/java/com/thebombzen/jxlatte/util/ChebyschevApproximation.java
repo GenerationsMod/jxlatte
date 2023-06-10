@@ -19,9 +19,7 @@ public class ChebyschevApproximation implements DoubleUnaryOperator {
         double bpa = 0.5 * ab;
         double[] f = IntStream.range(0, n).mapToDouble(k -> Math.cos(Math.PI * (k + 0.5D) / n) * bma + bpa).map(func).toArray();
         double fac = 2.0D / n;
-        List<Double> l = IntStream.range(0, n).mapToDouble(j -> {
-            return fac * IntStream.range(0, n).mapToDouble(k -> f[k] * Math.cos(Math.PI * j * (k + 0.5D) / n)).sum();
-        }).boxed().collect(Collectors.toList());
+        List<Double> l = IntStream.range(0, n).mapToDouble(j -> fac * IntStream.range(0, n).mapToDouble(k -> f[k] * Math.cos(Math.PI * j * (k + 0.5D) / n)).sum()).boxed().collect(Collectors.toList());
         Collections.reverse(l);
         c = l.stream().mapToDouble(Double::doubleValue).toArray();
     }

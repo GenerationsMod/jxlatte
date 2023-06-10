@@ -4,6 +4,7 @@ import java.io.BufferedInputStream;
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Objects;
 import java.util.stream.Stream;
 
 import com.thebombzen.jxlatte.InvalidBitstreamException;
@@ -72,7 +73,7 @@ public class HFGlobal {
                 float dx = (float)x / (width - 1);
                 float dy = (float)y / (height - 1);
                 float dist = (float)Math.sqrt(dx * dx + dy * dy);
-                weights[y][x] = interpolate(dist, (float)MathHelper.SQRT_2 + 1e-6f, bands);
+                weights[y][x] = interpolate(dist, MathHelper.SQRT_2 + 1e-6f, bands);
             }
         }
         return weights;
@@ -188,7 +189,7 @@ public class HFGlobal {
 
     private static void readDefaultWeights() throws IOException {
         DataInputStream in = new DataInputStream(new BufferedInputStream(
-            HFGlobal.class.getResourceAsStream("/default-weights-float.dat")));
+                Objects.requireNonNull(HFGlobal.class.getResourceAsStream("/default-weights-float.dat"))));
 
         for (int i : FlowHelper.range(17)) {
             TransformType tt = Stream.of(TransformType.values())
@@ -243,10 +244,8 @@ public class HFGlobal {
         TransformType.validateIndex(index, encodingMode);
         float[][] m;
         switch (encodingMode) {
-            case TransformType.MODE_LIBRARY:
-                params[index] = defaultParams[index];
-                break;
-            case TransformType.MODE_HORNUSS:
+            case TransformType.MODE_LIBRARY -> params[index] = defaultParams[index];
+            case TransformType.MODE_HORNUSS -> {
                 m = new float[3][3];
                 for (int y = 0; y < 3; y++) {
                     for (int x = 0; x < 3; x++) {
@@ -254,8 +253,8 @@ public class HFGlobal {
                     }
                 }
                 params[index] = new DCTParams(null, m, encodingMode);
-                break;
-            case TransformType.MODE_DCT2:
+            }
+            case TransformType.MODE_DCT2 -> {
                 m = new float[3][6];
                 for (int y = 0; y < 3; y++) {
                     for (int x = 0; x < 6; x++) {
@@ -263,8 +262,8 @@ public class HFGlobal {
                     }
                 }
                 params[index] = new DCTParams(null, m, encodingMode);
-                break;
-            case TransformType.MODE_DCT4:
+            }
+            case TransformType.MODE_DCT4 -> {
                 m = new float[3][2];
                 for (int y = 0; y < 3; y++) {
                     for (int x = 0; x < 2; x++) {
@@ -272,15 +271,13 @@ public class HFGlobal {
                     }
                 }
                 params[index] = new DCTParams(readDCTParams(reader), m, encodingMode);
-                break;
-            case TransformType.MODE_DCT:
-                params[index] = new DCTParams(readDCTParams(reader), null, encodingMode);
-                break;
-            case TransformType.MODE_RAW:
+            }
+            case TransformType.MODE_DCT -> params[index] = new DCTParams(readDCTParams(reader), null, encodingMode);
+            case TransformType.MODE_RAW -> {
                 float den = reader.readF16();
                 // SPEC: do not zero pad to byte here
                 TransformType tt = Stream.of(TransformType.values())
-                    .filter(t -> t.parameterIndex == index && !t.isVertical()).findFirst().get();
+                        .filter(t -> t.parameterIndex == index && !t.isVertical()).findFirst().get();
                 ModularChannelInfo[] info = new ModularChannelInfo[3];
                 info[0] = new ModularChannel(tt.matrixWidth, tt.matrixHeight, 0, 0);
                 info[1] = new ModularChannel(tt.matrixWidth, tt.matrixHeight, 0, 0);
@@ -295,8 +292,8 @@ public class HFGlobal {
                     }
                 }
                 params[index] = new DCTParams(null, m, encodingMode, den);
-                break;
-            case TransformType.MODE_AFV:
+            }
+            case TransformType.MODE_AFV -> {
                 m = new float[3][9];
                 for (IntPoint p : FlowHelper.range2D(9, 3)) {
                     m[p.y][p.x] = reader.readF16();
@@ -306,9 +303,8 @@ public class HFGlobal {
                 float[][] d = readDCTParams(reader);
                 float[][] f = readDCTParams(reader);
                 params[index] = new DCTParams(d, m, f, encodingMode);
-                break;
-            default:
-                throw new IllegalStateException("Challenge complete how did we get here");
+            }
+            default -> throw new IllegalStateException("Challenge complete how did we get here");
         }
     }
 
@@ -356,42 +352,40 @@ public class HFGlobal {
         TransformType tt = Stream.of(TransformType.values())
                     .filter(t -> t.parameterIndex == index && !t.isVertical()).findFirst().get();
         if (params[index] == defaultParams[index]) {
-            for (int c = 0; c < 3; c++)
-                weights[index][c] = defaultWeights[index][c];
+            System.arraycopy(defaultWeights[index], 0, weights[index], 0, 3);
             return;
         }
         for (int c = 0; c < 3; c++) {
             float[][] w;
             switch (params[index].mode) {
-                case TransformType.MODE_DCT:
-                    weights[index][c] = getDCTQuantWeights(tt.matrixWidth, tt.matrixHeight, params[index].dctParam[c]);
-                    break;
-                case TransformType.MODE_DCT4:
+                case TransformType.MODE_DCT ->
+                        weights[index][c] = getDCTQuantWeights(tt.matrixWidth, tt.matrixHeight, params[index].dctParam[c]);
+                case TransformType.MODE_DCT4 -> {
                     weights[index][c] = new float[8][8];
                     w = getDCTQuantWeights(4, 4, params[index].dctParam[c]);
                     for (IntPoint p : FlowHelper.range2D(8, 8)) {
-                        weights[index][c][p.y][p.x] = w[p.y/2][p.x/2];
+                        weights[index][c][p.y][p.x] = w[p.y / 2][p.x / 2];
                     }
                     weights[index][c][1][0] /= params[index].param[c][0];
                     weights[index][c][0][1] /= params[index].param[c][0];
                     weights[index][c][1][1] /= params[index].param[c][1];
-                    break;
-                case TransformType.MODE_DCT2:
+                }
+                case TransformType.MODE_DCT2 -> {
                     w = new float[8][8];
                     w[0][0] = 1f;
                     w[0][1] = w[1][0] = params[index].param[c][0];
                     w[1][1] = params[index].param[c][1];
                     for (IntPoint p : FlowHelper.range2D(2, 2)) {
-                        w[p.y][p.x+2] = w[p.x+2][p.y] = params[index].param[c][2];
-                        w[p.y+2][p.x+2] = params[index].param[c][3];
+                        w[p.y][p.x + 2] = w[p.x + 2][p.y] = params[index].param[c][2];
+                        w[p.y + 2][p.x + 2] = params[index].param[c][3];
                     }
                     for (IntPoint p : FlowHelper.range2D(4, 4)) {
-                        w[p.y][p.x+4] = w[p.x+4][p.y] = params[index].param[c][4];
-                        w[p.y+4][p.x+4] = params[index].param[c][5];
+                        w[p.y][p.x + 4] = w[p.x + 4][p.y] = params[index].param[c][4];
+                        w[p.y + 4][p.x + 4] = params[index].param[c][5];
                     }
                     weights[index][c] = w;
-                    break;
-                case TransformType.MODE_HORNUSS:
+                }
+                case TransformType.MODE_HORNUSS -> {
                     w = new float[8][8];
                     for (int y = 0; y < 8; y++)
                         Arrays.fill(w[y], params[index].param[c][0]);
@@ -399,28 +393,25 @@ public class HFGlobal {
                     w[0][1] = w[1][0] = params[index].param[c][1];
                     w[0][0] = 1f;
                     weights[index][c] = w;
-                    break;
-                case TransformType.MODE_DCT4_8:
+                }
+                case TransformType.MODE_DCT4_8 -> {
                     weights[index][c] = new float[8][8];
                     w = getDCTQuantWeights(8, 4, params[index].dctParam[c]);
                     for (IntPoint p : FlowHelper.range2D(8, 8)) {
-                        weights[index][c][p.y][p.x] = w[p.y/2][p.x];
+                        weights[index][c][p.y][p.x] = w[p.y / 2][p.x];
                     }
                     weights[index][c][1][0] /= params[index].param[c][0];
-                    break;
-                case TransformType.MODE_AFV:
-                    weights[index][c] = getAFVTransformWeights(index, c);
-                    break;
-                case TransformType.MODE_RAW:
+                }
+                case TransformType.MODE_AFV -> weights[index][c] = getAFVTransformWeights(index, c);
+                case TransformType.MODE_RAW -> {
                     weights[index][c] = new float[tt.matrixHeight][tt.matrixWidth];
                     for (IntPoint p : FlowHelper.range2D(tt.matrixWidth, tt.matrixHeight)) {
                         // SPEC: spec has the wrong params here
                         weights[index][c][p.y][p.x] = 1f / (params[index].param[c][p.y * tt.matrixWidth + p.x]
-                            * params[index].denominator);
+                                * params[index].denominator);
                     }
-                    break;
-                default:
-                    throw new IllegalStateException("Challenge complete how did we get here");
+                }
+                default -> throw new IllegalStateException("Challenge complete how did we get here");
             }
         }
         for (int c = 0; c < 3; c++) {

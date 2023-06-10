@@ -2,6 +2,7 @@ package com.thebombzen.jxlatte.entropy;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Objects;
 
 import com.thebombzen.jxlatte.InvalidBitstreamException;
 import com.thebombzen.jxlatte.io.Bitreader;
@@ -29,46 +30,47 @@ public class PrefixSymbolDistribution extends SymbolDistribution {
             symbols[i] = reader.readBits(logAlphabetSize);
         if (nsym == 4)
             treeSelect = reader.readBool();
-        switch (nsym) {
-            case 1:
-                table = null;
-                defaultSymbol = symbols[0];
-                return;
-            case 2:
-                bits = 1;
-                lens = new int[]{1, 1, 0, 0};
-                if (symbols[0] > symbols[1]) {
-                    int temp = symbols[1];
-                    symbols[1] = symbols[0];
-                    symbols[0] = temp;
-                }
-                break;
-            case 3:
-                bits = 2;
-                lens = new int[]{1, 2, 2, 0};
-                if (symbols[1] > symbols[2]) {
-                    int temp = symbols[2];
-                    symbols[2] = symbols[1];
-                    symbols[1] = temp;
-                }
-                break;
-            case 4:
-                if (treeSelect) {
-                    bits = 3;
-                    lens = new int[]{1, 2, 3, 3};
-                    if (symbols[2] > symbols[3]) {
-                        int temp = symbols[3];
-                        symbols[3] = symbols[2];
-                        symbols[2] = temp;
-                    }
-                } else {
-                    bits = 2;
-                    lens = new int[]{2, 2, 2, 2};
-                    Arrays.sort(symbols);
-                }
-                break;
-        }
-        this.table = new VLCTable(bits, lens, symbols);
+	    switch (nsym) {
+		    case 1 -> {
+			    table = null;
+			    defaultSymbol = symbols[0];
+			    return;
+		    }
+		    case 2 -> {
+			    bits = 1;
+			    lens = new int[]{1, 1, 0, 0};
+			    if (symbols[0] > symbols[1]) {
+				    int temp = symbols[1];
+				    symbols[1] = symbols[0];
+				    symbols[0] = temp;
+			    }
+		    }
+		    case 3 -> {
+			    bits = 2;
+			    lens = new int[]{1, 2, 2, 0};
+			    if (symbols[1] > symbols[2]) {
+				    int temp = symbols[2];
+				    symbols[2] = symbols[1];
+				    symbols[1] = temp;
+			    }
+		    }
+		    case 4 -> {
+			    if (treeSelect) {
+				    bits = 3;
+				    lens = new int[]{1, 2, 3, 3};
+				    if (symbols[2] > symbols[3]) {
+					    int temp = symbols[3];
+					    symbols[3] = symbols[2];
+					    symbols[2] = temp;
+				    }
+			    } else {
+				    bits = 2;
+				    lens = new int[]{2, 2, 2, 2};
+				    Arrays.sort(symbols);
+			    }
+		    }
+	    }
+        this.table = new VLCTable(bits, Objects.requireNonNull(lens), symbols);
     }
 
     private void populateComplexPrefix(Bitreader reader, int hskip) throws IOException {

@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.InputStream;
 
 import com.thebombzen.jxlatte.InvalidBitstreamException;
+import org.jetbrains.annotations.NotNull;
 
 public class Bitreader extends InputStream {
 
@@ -18,7 +19,7 @@ public class Bitreader extends InputStream {
     }
 
     @Override
-    public int read(byte[] buffer) throws IOException {
+    public int read(byte @NotNull [] buffer) throws IOException {
         return read(buffer, 0, buffer.length);
     }
 
@@ -125,7 +126,7 @@ public class Bitreader extends InputStream {
         }
         int count = in.available();
         int max = (64 - cacheBits) / 8;
-        count = count > 0 ? (count < max ? count : max) : 1;
+        count = count > 0 ? (Math.min(count, max)) : 1;
         boolean eof = false;
         for (int i = 0; i < count; i++) {
             int b = in.read();
@@ -232,7 +233,7 @@ public class Bitreader extends InputStream {
     }
 
     @Override
-    public int read(byte[] buffer, int offset, int length) throws IOException {
+    public int read(byte @NotNull [] buffer, int offset, int length) throws IOException {
         if (length == 0)
             return 0;
         if (cacheBits % 8 != 0)

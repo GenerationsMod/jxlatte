@@ -36,7 +36,7 @@ public class FlowHelper {
     }
 
     public static Iterable<Integer> range(int startIndex, int endIndex) {
-        return new IteratorIterable<Integer>(IntStream.range(startIndex, endIndex).iterator());
+        return new IteratorIterable<>(IntStream.range(startIndex, endIndex).iterator());
     }
 
     private ExecutorService threadPool;

@@ -1,5 +1,6 @@
 package com.thebombzen.jxlatte.color;
 
+import java.util.Objects;
 import java.util.function.DoubleUnaryOperator;
 
 import com.thebombzen.jxlatte.util.IntPoint;
@@ -39,8 +40,8 @@ public final class ColorManagement {
     }
 
     private static void validateLMS(float[] lms) {
-        for (int i = 0; i < lms.length; i++) {
-            if (Math.abs(lms[i]) < 1e-8D) {
+        for (float lm : lms) {
+            if (Math.abs(lm) < 1e-8D) {
                 throw new IllegalArgumentException();
             }
         }
@@ -67,7 +68,7 @@ public final class ColorManagement {
             return null;
         if (wp == null)
             wp = WP_D50;
-        if (wp.x < 0 || wp.x > 1 || wp.y <= 0 || wp.y > 1)
+        if (Objects.requireNonNull(wp).x < 0 || wp.x > 1 || wp.y <= 0 || wp.y > 1)
             throw new IllegalArgumentException();
         float[][] primariesTr = new float[][]{
             getXYZ(primaries.red),
@@ -101,32 +102,33 @@ public final class ColorManagement {
 
     public static DoubleUnaryOperator getTransferFunction(int transfer) {
         switch (transfer) {
-            case ColorFlags.TF_LINEAR:
+            case ColorFlags.TF_LINEAR -> {
                 return DoubleUnaryOperator.identity();
-            case ColorFlags.TF_SRGB:
+            }
+            case ColorFlags.TF_SRGB -> {
                 return f -> {
                     if (f <= 0.00313066844250063D)
                         return f * 12.92D;
                     else
                         return 1.055D * Math.pow(f, 0.4166666666666667D) - 0.055D;
                 };
-            case ColorFlags.TF_PQ:
+            }
+            case ColorFlags.TF_PQ -> {
                 return f -> {
                     double d = Math.pow(f, 0.159423828125D);
                     return Math.pow((0.8359375D + 18.8515625D * d) / (1D + 18.6875D * d), 78.84375D);
                 };
-            case ColorFlags.TF_BT709:
+            }
+            case ColorFlags.TF_BT709 -> {
                 return f -> {
                     if (f <= 0.018053968510807807336D)
                         return 4.5D * f;
                     else
                         return 1.0992968268094429403D * Math.pow(f, 0.45D) - 0.0992968268094429403D;
                 };
-            case ColorFlags.TF_DCI:
-                transfer = 3846154;
-                break;
-            case ColorFlags.TF_HLG:
-                throw new UnsupportedOperationException("Not yet implemented");
+            }
+            case ColorFlags.TF_DCI -> transfer = 3846154;
+            case ColorFlags.TF_HLG -> throw new UnsupportedOperationException("Not yet implemented");
         }
 
         if (transfer < (1 << 24)) {
@@ -139,32 +141,33 @@ public final class ColorManagement {
 
     public static DoubleUnaryOperator getInverseTransferFunction(int transfer) {
         switch (transfer) {
-            case ColorFlags.TF_LINEAR:
+            case ColorFlags.TF_LINEAR -> {
                 return DoubleUnaryOperator.identity();
-            case ColorFlags.TF_SRGB:
+            }
+            case ColorFlags.TF_SRGB -> {
                 return f -> {
                     if (f <= 0.0404482362771082D)
                         return f * 0.07739938080495357D;
                     else
                         return Math.pow((f + 0.055D) * 0.9478672985781991D, 2.4D);
                 };
-            case ColorFlags.TF_BT709:
+            }
+            case ColorFlags.TF_BT709 -> {
                 return f -> {
                     if (f <= 0.081242858298635133011D)
                         return f * 0.22222222222222222222D;
                     else
                         return Math.pow((f + 0.0992968268094429403D) * 0.90967241568627260377D, 2.2222222222222222222D);
                 };
-            case ColorFlags.TF_PQ:
+            }
+            case ColorFlags.TF_PQ -> {
                 return f -> {
                     double d = Math.pow(f, 0.012683313515655965121D);
                     return Math.pow((d - 0.8359375D) / (18.8515625D + 18.6875D * d), 6.2725880551301684533D);
                 };
-            case ColorFlags.TF_DCI:
-                transfer = 3846154;
-                break;
-            case ColorFlags.TF_HLG:
-                throw new UnsupportedOperationException("Not yet implemented");
+            }
+            case ColorFlags.TF_DCI -> transfer = 3846154;
+            case ColorFlags.TF_HLG -> throw new UnsupportedOperationException("Not yet implemented");
         }
     
         if (transfer < (1 << 24)) {

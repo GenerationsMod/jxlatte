@@ -2,10 +2,10 @@ package com.thebombzen.jxlatte.util.functional;
 
 @FunctionalInterface
 public interface ExceptionalRunnable extends Runnable {
-    public void runExceptionally() throws Throwable;
+    void runExceptionally() throws Throwable;
 
     @Override
-    public default void run() {
+    default void run() {
         try {
             runExceptionally();
         } catch (Throwable ex) {
@@ -13,11 +13,11 @@ public interface ExceptionalRunnable extends Runnable {
         }
     }
 
-    public static Runnable of(ExceptionalRunnable r) {
+    static Runnable of(ExceptionalRunnable r) {
         return r;
     }
 
-    public default <T> ExceptionalSupplier<T> supply() {
+    default <T> ExceptionalSupplier<T> supply() {
         return () -> {
             run();
             return null;

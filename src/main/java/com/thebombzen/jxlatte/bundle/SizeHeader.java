@@ -38,23 +38,15 @@ public class SizeHeader {
     }
 
     public static int getWidthFromRatio(int ratio, int height) {
-        switch (ratio) {
-            case 1:
-                return height;
-            case 2:
-                return (int)(height * 6L / 5L);
-            case 3:
-                return (int)(height * 4L / 3L);
-            case 4:
-                return (int)(height * 3L / 2L);
-            case 5:
-                return (int)(height * 16L / 9L);
-            case 6:
-                return (int)(height * 5L / 4L);
-            case 7:
-                return height * 2;
-            default:
-                throw new IllegalArgumentException();
-        }
+        return switch (ratio) {
+            case 1 -> height;
+            case 2 -> (int) (height * 6L / 5L);
+            case 3 -> (int) (height * 4L / 3L);
+            case 4 -> (int) (height * 3L / 2L);
+            case 5 -> (int) (height * 16L / 9L);
+            case 6 -> (int) (height * 5L / 4L);
+            case 7 -> height * 2;
+            default -> throw new IllegalArgumentException();
+        };
     }
 }

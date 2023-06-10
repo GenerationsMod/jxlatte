@@ -30,7 +30,7 @@ public final class FunctionalHelper {
             else
                 break;
         }
-        FunctionalHelper.<RuntimeException>sneakyThrow0(ex);
+        FunctionalHelper.sneakyThrow0(ex);
         return null;
     }
 
@@ -55,7 +55,7 @@ public final class FunctionalHelper {
             results.add(join(future));
         }
         if (generator != null)
-            return results.stream().toArray(generator);
+            return results.toArray(generator);
         
         return null;
     }

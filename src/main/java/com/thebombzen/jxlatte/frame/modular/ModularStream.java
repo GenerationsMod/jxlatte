@@ -95,8 +95,9 @@ public class ModularStream {
                 else
                     nbMetaChannels++;
                 int start = transforms[i].beginC + 1;
-                for (int j = start; j < transforms[i].beginC + transforms[i].numC; j++)
-                    channels.remove(start);
+                if (transforms[i].beginC + transforms[i].numC > start) {
+                    channels.subList(start, transforms[i].beginC + transforms[i].numC).clear();
+                }
                 if (transforms[i].nbDeltas > 0 && transforms[i].dPred == 6)
                     channels.get(transforms[i].beginC).forceWP = true;
                 channels.add(0, new ModularChannelInfo(transforms[i].nbColors, transforms[i].numC, -1, -1));
@@ -128,24 +129,24 @@ public class ModularStream {
                 } else {
                     squeezeList.addAll(Arrays.asList(transforms[i].sp));
                 }
-                SqueezeParam[] spa = squeezeList.stream().toArray(SqueezeParam[]::new);
+                SqueezeParam[] spa = squeezeList.toArray(SqueezeParam[]::new);
                 squeezeMap.put(i, spa);
-                for (int j = 0; j < spa.length; j++) {
-                    int begin = spa[j].beginC;
-                    int end = begin + spa[j].numC - 1;
-                    int offset = spa[j].inPlace ? end + 1 : channels.size();
+                for (SqueezeParam squeezeParam : spa) {
+                    int begin = squeezeParam.beginC;
+                    int end = begin + squeezeParam.numC - 1;
+                    int offset = squeezeParam.inPlace ? end + 1 : channels.size();
                     if (begin < nbMetaChannels) {
-                        if (!spa[j].inPlace)
+                        if (!squeezeParam.inPlace)
                             throw new InvalidBitstreamException("squeeze meta must be in place");
                         if (end >= nbMetaChannels)
                             throw new InvalidBitstreamException("squeeze meta must end in meta");
-                        nbMetaChannels += spa[j].numC;
+                        nbMetaChannels += squeezeParam.numC;
                     }
                     for (int k = begin; k <= end; k++) {
                         ModularChannelInfo residu;
                         ModularChannelInfo chan = channels.get(k);
                         int r = offset + k - begin;
-                        if (spa[j].horizontal) {
+                        if (squeezeParam.horizontal) {
                             w = chan.width;
                             chan.width = (w + 1) / 2;
                             chan.hshift++;
@@ -163,7 +164,6 @@ public class ModularStream {
                 }
             } else if (transforms[i].tr == TransformInfo.RCT) {
                 // RCT doesn't modify the channel list
-                continue;
             } else {
                 throw new InvalidBitstreamException("Illegal Transform " + i + ": " + transforms[i].tr);
             }
@@ -255,55 +255,40 @@ public class ModularStream {
                 int start = transforms[i].beginC;
                 for (int j = 0; j < 3; j++)
                     v[j] = getChannel(start + j);
-                ExceptionalIntBiConsumer rct;
-                switch(type) {
-                    case 0:
-                        rct = (x, y) -> {};
-                        break;
-                    case 1:
-                        rct = (x, y) -> {
-                            v[2].set(x, y, v[0].get(x, y) + v[2].get(x, y));
-                        };
-                        break;
-                    case 2:
-                        rct = (x, y) -> {
-                            v[2].set(x, y, v[0].get(x, y) + v[1].get(x, y));
-                        };
-                        break;
-                    case 3:
-                        rct = (x, y) -> {
-                            int a = v[0].get(x, y);
-                            v[2].set(x, y, a + v[2].get(x, y));
-                            v[1].set(x, y, a + v[1].get(x, y));
-                        };
-                        break;
-                    case 4:
-                        rct = (x, y) -> {
-                            v[1].set(x, y, v[1].get(x, y) + ((v[0].get(x, y) + v[2].get(x, y)) >> 1));
-                        };
-                        break;
-                    case 5:
-                        rct = (x, y) -> {
-                            int a = v[0].get(x, y);
-                            int c = v[2].get(x, y);
-                            v[1].set(x, y, v[1].get(x, y) + a + (c >> 1));
-                            v[2].set(x, y, c + a);
-                        };
-                        break;
-                    case 6:
-                        rct = (x, y) -> {
-                            int b = v[1].get(x, y);
-                            int c = v[2].get(x, y);
-                            int tmp = v[0].get(x, y) - (c >> 1);
-                            int f = tmp - (b >> 1);
-                            v[0].set(x, y, f + b);
-                            v[1].set(x, y, c + tmp);
-                            v[2].set(x, y, f);
-                        };
-                        break;
-                    default:
-                        throw new IllegalStateException("Challenge complete how did we get here");
-                }
+                ExceptionalIntBiConsumer rct = switch (type) {
+                    case 0 -> (x, y) -> {
+                    };
+                    case 1 -> (x, y) -> {
+                        v[2].set(x, y, v[0].get(x, y) + v[2].get(x, y));
+                    };
+                    case 2 -> (x, y) -> {
+                        v[2].set(x, y, v[0].get(x, y) + v[1].get(x, y));
+                    };
+                    case 3 -> (x, y) -> {
+                        int a = v[0].get(x, y);
+                        v[2].set(x, y, a + v[2].get(x, y));
+                        v[1].set(x, y, a + v[1].get(x, y));
+                    };
+                    case 4 -> (x, y) -> {
+                        v[1].set(x, y, v[1].get(x, y) + ((v[0].get(x, y) + v[2].get(x, y)) >> 1));
+                    };
+                    case 5 -> (x, y) -> {
+                        int a = v[0].get(x, y);
+                        int c = v[2].get(x, y);
+                        v[1].set(x, y, v[1].get(x, y) + a + (c >> 1));
+                        v[2].set(x, y, c + a);
+                    };
+                    case 6 -> (x, y) -> {
+                        int b = v[1].get(x, y);
+                        int c = v[2].get(x, y);
+                        int tmp = v[0].get(x, y) - (c >> 1);
+                        int f = tmp - (b >> 1);
+                        v[0].set(x, y, f + b);
+                        v[1].set(x, y, c + tmp);
+                        v[2].set(x, y, f);
+                    };
+                    default -> throw new IllegalStateException("Challenge complete how did we get here");
+                };
                 TaskList<Void> tasks = new TaskList<>(frame.getFlowHelper().getThreadPool());
                 for (int y0 = 0; y0 < v[0].height; y0++) {
                     tasks.submit(y0, (y) -> {

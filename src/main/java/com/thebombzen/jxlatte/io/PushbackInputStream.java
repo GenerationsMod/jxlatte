@@ -7,6 +7,7 @@ import java.util.Queue;
 import java.util.function.Supplier;
 
 import com.thebombzen.jxlatte.util.functional.ExceptionalSupplier;
+import org.jetbrains.annotations.NotNull;
 
 public class PushbackInputStream extends InputStream {
     private byte[] buffer = null;
@@ -65,12 +66,12 @@ public class PushbackInputStream extends InputStream {
     }
 
     @Override
-    public int read(byte[] b) throws IOException {
+    public int read(byte @NotNull [] b) throws IOException {
         return read(b, 0, b.length);
     }
 
     @Override
-    public int read(byte[] b, int offset, int length) throws IOException {
+    public int read(byte @NotNull [] b, int offset, int length) throws IOException {
         if (refillBuffer())
             return -1;
         

@@ -151,8 +151,8 @@ public class Frame {
     }
 
     public void skipFrameData() throws IOException {
-        for (int i = 0; i < tocLengths.length; i++) {
-            globalReader.skipBits(tocLengths[i]);
+        for (int tocLength : tocLengths) {
+            globalReader.skipBits(tocLength);
         }
     }
 
@@ -223,9 +223,7 @@ public class Frame {
         if (tocLengths.length == 1)
             return CompletableFuture.completedFuture(this.globalReader);
         int permutedIndex = tocPermuation[index];
-        return buffers[permutedIndex].thenApply((buff) -> {
-            return new Bitreader(new ByteArrayInputStream(buff));
-        });
+        return buffers[permutedIndex].thenApply((buff) -> new Bitreader(new ByteArrayInputStream(buff)));
     }
 
     public static int[] readPermutation(Bitreader reader, EntropyStream stream, int size, int skip) throws IOException {
@@ -239,7 +237,7 @@ public class Frame {
             if (lehmer[i] >= size - i)
                 throw new InvalidBitstreamException("Illegal lehmer value in lehmer sequence");
         }
-        List<Integer> temp = new LinkedList<Integer>();
+        List<Integer> temp = new LinkedList<>();
         int[] permutation = new int[size];
         for (int i = 0; i < size; i++)
             temp.add(i);
@@ -341,9 +339,7 @@ public class Frame {
                 ModularChannel channel = lfGlobal.gModular.stream.getChannel(index);
                 int[][] newChannel = lfGroups[lfGroupID].modularLFGroupBuffer[j];
                 ModularChannelInfo newChannelInfo = lfGroups[lfGroupID].modularLFGroupInfo[j];
-                flowHelper.parallelIterate(IntPoint.sizeOf(newChannel), (x, y) -> {
-                    channel.set(x + newChannelInfo.origin.x, y + newChannelInfo.origin.y, newChannel[y][x]);
-                });
+                flowHelper.parallelIterate(IntPoint.sizeOf(newChannel), (x, y) -> channel.set(x + newChannelInfo.origin.x, y + newChannelInfo.origin.y, newChannel[y][x]));
             }
         }
     }
@@ -364,7 +360,7 @@ public class Frame {
         for (final int pass : FlowHelper.range(numPasses)) {
             for (final int group : FlowHelper.range(numGroups)) {
                 taskList.submit(pass, getBitreader(2 + numLFGroups + pass * numGroups + group), (reader) -> {
-                    ModularChannelInfo[] replaced = Arrays.asList(passes[pass].replacedChannels).stream()
+                    ModularChannelInfo[] replaced = Arrays.stream(passes[pass].replacedChannels)
                     .filter(Objects::nonNull).map(ModularChannelInfo::new).toArray(ModularChannelInfo[]::new);
                     for (ModularChannelInfo info : replaced) {
                         IntPoint shift = new IntPoint(info.hshift, info.vshift);
@@ -383,7 +379,7 @@ public class Frame {
         }
 
         for (int pass = 0; pass < numPasses; pass++) {
-            passGroups[pass] = taskList.collect(pass).stream().toArray(PassGroup[]::new);
+            passGroups[pass] = taskList.collect(pass).toArray(PassGroup[]::new);
             int j = 0;
             for (int i = 0; i < passes[pass].replacedChannels.length; i++) {
                 if (passes[pass].replacedChannels[i] == null)
@@ -392,9 +388,7 @@ public class Frame {
                 for (int group = 0; group < numGroups; group++) {
                     ModularChannelInfo newChannelInfo = passGroups[pass][group].modularPassGroupInfo[j];
                     int[][] buff = passGroups[pass][group].modularPassGroupBuffer[j];
-                    flowHelper.parallelIterate(new IntPoint(newChannelInfo.width, newChannelInfo.height), (x, y) -> {
-                        channel.set(x + newChannelInfo.origin.x, y + newChannelInfo.origin.y, buff[y][x]);
-                    });
+                    flowHelper.parallelIterate(new IntPoint(newChannelInfo.width, newChannelInfo.height), (x, y) -> channel.set(x + newChannelInfo.origin.x, y + newChannelInfo.origin.y, buff[y][x]));
                 }
                 j++;
             }
@@ -621,14 +615,13 @@ public class Frame {
                             outputBuffer[2][y][x] = buffer[2][y][x];
                             continue;
                         }
-                        for (int j = 0; j < pc.length; j++) {
-                            final IntPoint ip = pc[j];
+                        for (final IntPoint ip : pc) {
                             final int nX = x + ip.x;
                             final int nY = y + ip.y;
                             final int mX = MathHelper.mirrorCoordinate(nX, size.x);
                             final int mY = MathHelper.mirrorCoordinate(nY, size.y);
                             final float dist = i == 2 ? epfDistance2(buffer, x, y, nX, nY, size)
-                                : epfDistance1(buffer, x, y, nX, nY, size);
+                                    : epfDistance1(buffer, x, y, nX, nY, size);
                             final float weight = epfWeight(sigmaScale, dist, s, x, y);
                             sumWeights += weight;
                             for (int c = 0; c < 3; c++)
@@ -657,8 +650,7 @@ public class Frame {
         for (int c = 0; c < 3; c++) {
             final float[][] buffC = buffer[c];
             final float scale = header.restorationFilter.epfChannelScale[c];
-            for (int i = 0; i < epfCross.length; i++) {
-                final IntPoint p = epfCross[i];
+            for (final IntPoint p : epfCross) {
                 final int pX = MathHelper.mirrorCoordinate(basePosX + p.x, size.x);
                 final int pY = MathHelper.mirrorCoordinate(basePosY + p.y, size.y);
                 final int dX = MathHelper.mirrorCoordinate(distPosX + p.x, size.x);

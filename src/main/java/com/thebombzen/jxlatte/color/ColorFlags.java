@@ -46,31 +46,22 @@ public class ColorFlags {
     }
 
     public static String primariesToString(int primaries) {
-        switch (primaries) {
-            case PRI_SRGB:
-                return "sRGB / BT.709";
-            case PRI_BT2100:
-                return "BT Rec.2100 / BT Rec.2020";
-            case PRI_P3:
-                return "P3";
-            default:
-                return "Unknown";
-        }
+        return switch (primaries) {
+            case PRI_SRGB -> "sRGB / BT.709";
+            case PRI_BT2100 -> "BT Rec.2100 / BT Rec.2020";
+            case PRI_P3 -> "P3";
+            default -> "Unknown";
+        };
     }
 
     public static String whitePointToString(int whitePoint) {
-        switch (whitePoint) {
-            case WP_D65:
-                return "D65";
-            case WP_E:
-                return "Standard Illuminant E";
-            case WP_DCI:
-                return "DCI";
-            case WP_D50:
-                return "D50";
-            default:
-                return "Unknown";
-        }
+        return switch (whitePoint) {
+            case WP_D65 -> "D65";
+            case WP_E -> "Standard Illuminant E";
+            case WP_DCI -> "DCI";
+            case WP_D50 -> "D50";
+            default -> "Unknown";
+        };
     }
 
     public static boolean validateColorEncoding(int colorEncoding) {
@@ -102,36 +93,25 @@ public class ColorFlags {
         if (transfer < (1 << 24))
             return String.format("Gamma: %f", transfer * 1e-7D);
 
-        switch (transfer) {
-            case TF_BT709:
-                return "BT.709";
-            case TF_LINEAR:
-                return "Linear Light";
-            case TF_SRGB:
-                return "sRGB / ISO-IEC 61966-2-1";
-            case TF_PQ:
-                return "Perceptual Quantizer / SMPTE 2084";
-            case TF_DCI:
-                return "DCI";
-            case TF_HLG:
-                return "Hybrid Log Gamma / ARIB B-67";
-            default:
-                return "Unknown";
-        }
+        return switch (transfer) {
+            case TF_BT709 -> "BT.709";
+            case TF_LINEAR -> "Linear Light";
+            case TF_SRGB -> "sRGB / ISO-IEC 61966-2-1";
+            case TF_PQ -> "Perceptual Quantizer / SMPTE 2084";
+            case TF_DCI -> "DCI";
+            case TF_HLG -> "Hybrid Log Gamma / ARIB B-67";
+            default -> "Unknown";
+        };
     }
 
     public static CIEXY getWhitePoint(int whitePoint) {
-        switch (whitePoint) {
-            case WP_D65:
-                return new CIEXY(0.3127f, 0.3290f);
-            case WP_E:
-                return new CIEXY(1f/3f, 1f/3f);
-            case WP_DCI:
-                return new CIEXY(0.314f, 0.351f);
-            case WP_D50:
-                return new CIEXY(0.34567f, 0.34567f);
-        }
-        return null;
+        return switch (whitePoint) {
+            case WP_D65 -> new CIEXY(0.3127f, 0.3290f);
+            case WP_E -> new CIEXY(1f / 3f, 1f / 3f);
+            case WP_DCI -> new CIEXY(0.314f, 0.351f);
+            case WP_D50 -> new CIEXY(0.34567f, 0.34567f);
+            default -> null;
+        };
     }
 
     public static int getWhitePoint(CIEXY wp) {
@@ -143,22 +123,19 @@ public class ColorFlags {
     }
 
     public static CIEPrimaries getPrimaries(int primaries) {
-        switch (primaries) {
-            case ColorFlags.PRI_SRGB:
-                return new CIEPrimaries(new CIEXY(0.639998686f, 0.330010138f),
+        return switch (primaries) {
+            case ColorFlags.PRI_SRGB -> new CIEPrimaries(new CIEXY(0.639998686f, 0.330010138f),
                     new CIEXY(0.300003784f, 0.600003357f),
                     new CIEXY(0.150002046f, 0.059997204f));
-            case ColorFlags.PRI_BT2100:
-                return new CIEPrimaries(new CIEXY(0.708f, 0.292f),
+            case ColorFlags.PRI_BT2100 -> new CIEPrimaries(new CIEXY(0.708f, 0.292f),
                     new CIEXY(0.170f, 0.797f),
                     new CIEXY(0.131f, 0.046f));
-            case ColorFlags.PRI_P3:
-                return new CIEPrimaries(
+            case ColorFlags.PRI_P3 -> new CIEPrimaries(
                     new CIEXY(0.680f, 0.320f),
                     new CIEXY(0.265f, 0.690f),
                     new CIEXY(0.150f, 0.060f));
-        }
-        return null;
+            default -> null;
+        };
     }
 
     public static int getPrimaries(CIEPrimaries primaries) {

@@ -111,42 +111,55 @@ public class ModularChannel extends ModularChannelInfo {
     protected int prediction(int x, int y, int k) {
         int n, v, nw, w;
         switch (k) {
-            case 0:
+            case 0 -> {
                 return 0;
-            case 1:
+            }
+            case 1 -> {
                 return west(x, y);
-            case 2:
+            }
+            case 2 -> {
                 return north(x, y);
-            case 3:
+            }
+            case 3 -> {
                 return (west(x, y) + north(x, y)) / 2;
-            case 4:
+            }
+            case 4 -> {
                 w = west(x, y);
                 n = north(x, y);
                 nw = northWest(x, y);
                 return Math.abs(n - nw) < Math.abs(w - nw) ? w : n;
-            case 5:
+            }
+            case 5 -> {
                 w = west(x, y);
                 n = north(x, y);
                 v = w + n - northWest(x, y);
                 return MathHelper.clamp(v, n, w);
-            case 6:
+            }
+            case 6 -> {
                 return (pred[y][x] + 3) >> 3;
-            case 7:
+            }
+            case 7 -> {
                 return northEast(x, y);
-            case 8:
+            }
+            case 8 -> {
                 return northWest(x, y);
-            case 9:
+            }
+            case 9 -> {
                 return westWest(x, y);
-            case 10:
+            }
+            case 10 -> {
                 return (west(x, y) + northWest(x, y)) / 2;
-            case 11:
+            }
+            case 11 -> {
                 return (north(x, y) + northWest(x, y)) / 2;
-            case 12:
+            }
+            case 12 -> {
                 return (north(x, y) + northEast(x, y)) / 2;
-            case 13:
+            }
+            case 13 -> {
                 return (6 * north(x, y) - 2 * northNorth(x, y) + 7 * west(x, y) + westWest(x, y) + northEastEast(x, y) + 3 * northEast(x, y) + 8) / 16;
-            default:
-                throw new IllegalStateException();
+            }
+            default -> throw new IllegalStateException();
         }
     }
 

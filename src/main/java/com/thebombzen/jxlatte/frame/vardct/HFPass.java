@@ -3,6 +3,7 @@ package com.thebombzen.jxlatte.frame.vardct;
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Objects;
 import java.util.stream.Stream;
 
 import com.thebombzen.jxlatte.InvalidBitstreamException;
@@ -19,7 +20,7 @@ public class HFPass {
     private static final int[][] naturalOrderY = new int[13][];
 
     static {
-        InputStream in = new BufferedInputStream(HFPass.class.getResourceAsStream("/natural-order.dat"));
+        InputStream in = new BufferedInputStream(Objects.requireNonNull(HFPass.class.getResourceAsStream("/natural-order.dat")));
         try {
             for (int i = 0; i < 13; i++) {
                 final int index = i;
