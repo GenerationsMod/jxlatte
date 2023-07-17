@@ -146,7 +146,8 @@ public class JXLImage {
             }
         }
         ColorEncodingBundle color = imageHeader.getColorEncoding();
-        return !CIEPrimaries.matches(color.prim, ColorManagement.PRI_SRGB) && !CIEPrimaries.matches(color.prim, ColorManagement.PRI_P3);
+        return !CIEPrimaries.matches(color.prim, ColorManagement.PRI_SRGB)
+            && !CIEPrimaries.matches(color.prim, ColorManagement.PRI_P3);
     }
 
     /*
