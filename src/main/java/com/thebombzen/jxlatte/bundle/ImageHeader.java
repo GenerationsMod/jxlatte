@@ -161,7 +161,7 @@ public class ImageHeader {
         header.size = new SizeHeader(reader, level);
 
         boolean allDefault = reader.readBool();
-        boolean extraFields = allDefault ? false : reader.readBool();
+        boolean extraFields = !allDefault && reader.readBool();
 
         if (extraFields) {
             header.orientation = 1 + reader.readBits(3);

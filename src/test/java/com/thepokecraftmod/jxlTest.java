@@ -6,7 +6,6 @@ import com.thebombzen.jxlatte.JXLOptions;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.Collection;
 import java.util.LinkedList;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;

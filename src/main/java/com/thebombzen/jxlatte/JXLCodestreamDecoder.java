@@ -37,51 +37,37 @@ public class JXLCodestreamDecoder {
             }
             case 2 -> {
                 // flip horizontally
-                flowHelper.parallelIterate(size, p -> {
-                    dest[p.y][size.x - 1 - p.x] = src[p.y][p.x];
-                });
+                flowHelper.parallelIterate(size, p -> dest[p.y][size.x - 1 - p.x] = src[p.y][p.x]);
                 return dest;
             }
             case 3 -> {
                 // rotate 180 degrees
-                flowHelper.parallelIterate(size, p -> {
-                    dest[size.y - 1 - p.y][size.x - 1 - p.x] = src[p.y][p.x];
-                });
+                flowHelper.parallelIterate(size, p -> dest[size.y - 1 - p.y][size.x - 1 - p.x] = src[p.y][p.x]);
                 return dest;
             }
             case 4 -> {
                 // flip vertically
-                flowHelper.parallelIterate(size, p -> {
-                    dest[size.y - 1 - p.y][p.x] = src[p.y][p.x];
-                });
+                flowHelper.parallelIterate(size, p -> dest[size.y - 1 - p.y][p.x] = src[p.y][p.x]);
                 return dest;
             }
             case 5 -> {
                 // transpose
-                flowHelper.parallelIterate(size, p -> {
-                    dest[p.x][p.y] = src[p.y][p.x];
-                });
+                flowHelper.parallelIterate(size, p -> dest[p.x][p.y] = src[p.y][p.x]);
                 return dest;
             }
             case 6 -> {
                 // rotate clockwise
-                flowHelper.parallelIterate(size, p -> {
-                    dest[p.x][size.y - 1 - p.y] = src[p.y][p.x];
-                });
+                flowHelper.parallelIterate(size, p -> dest[p.x][size.y - 1 - p.y] = src[p.y][p.x]);
                 return dest;
             }
             case 7 -> {
                 // skew transpose
-                flowHelper.parallelIterate(size, p -> {
-                    dest[size.x - 1 - p.x][size.y - 1 - p.y] = src[p.y][p.x];
-                });
+                flowHelper.parallelIterate(size, p -> dest[size.x - 1 - p.x][size.y - 1 - p.y] = src[p.y][p.x]);
                 return dest;
             }
             case 8 -> {
                 // rotate counterclockwise
-                flowHelper.parallelIterate(size, p -> {
-                    dest[size.x - 1 - p.x][p.y] = src[p.y][p.x];
-                });
+                flowHelper.parallelIterate(size, p -> dest[size.x - 1 - p.x][p.y] = src[p.y][p.x]);
                 return dest;
             }
             default -> throw new IllegalStateException("Challenge complete how did we get here");
@@ -133,9 +119,7 @@ public class JXLCodestreamDecoder {
                     BlendingInfo info = patch.blendingInfos[j][c];
                     if (info.mode == 0)
                         continue;
-                    boolean premult = imageHeader.hasAlpha()
-                            ? imageHeader.getExtraChannelInfo(info.alphaChannel).alphaAssociated
-                            : true;
+                    boolean premult = !imageHeader.hasAlpha() || imageHeader.getExtraChannelInfo(info.alphaChannel).alphaAssociated;
                     boolean isAlpha = c > 0 &&
                             imageHeader.getExtraChannelInfo(c - 1).type == ExtraChannelType.ALPHA;
                     if (info.mode > 3 && header.upsampling > 1 && c > 0 &&
@@ -230,9 +214,7 @@ public class JXLCodestreamDecoder {
                 info = frame.getFrameHeader().ecBlendingInfo[c - colorChannels];
             boolean isAlpha = c >= colorChannels
                 && imageHeader.getExtraChannelInfo(c - colorChannels).type == ExtraChannelType.ALPHA;
-            boolean premult = imageHeader.hasAlpha()
-                        ? imageHeader.getExtraChannelInfo(info.alphaChannel).alphaAssociated
-                        : true;
+            boolean premult = !imageHeader.hasAlpha() || imageHeader.getExtraChannelInfo(info.alphaChannel).alphaAssociated;
             float[][][] ref = reference[info.source];
             switch (info.mode) {
                 case FrameFlags.BLEND_ADD:
@@ -352,7 +334,7 @@ public class JXLCodestreamDecoder {
             Frame frame = new Frame(bitreader, imageHeader, options, flowHelper);
             frame.readHeader();
             header = frame.getFrameHeader();
-            if (options.verbosity >= JXLOptions.VERBOSITY_INFO && frames.size() == 0)
+            if (options.verbosity >= JXLOptions.VERBOSITY_INFO && frames.isEmpty())
                 err.format("    Lossless: %s%n",
                     header.encoding == FrameFlags.VARDCT || imageHeader.isXYBEncoded() ? "No" : "Possibly");
             if (options.verbosity >= JXLOptions.VERBOSITY_VERBOSE)

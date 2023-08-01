@@ -29,7 +29,7 @@ public class PushbackInputStream extends InputStream {
     }
 
     /* returns true upon EOF */
-    private boolean refillBuffer() throws IOException {
+    private boolean refillBuffer() {
         if (buffer == null || bufferPos >= buffer.length) {
             bufferPos = 0;
             buffer = fifo.poll();           

@@ -28,7 +28,7 @@ public class ColorEncodingBundle {
 
     public ColorEncodingBundle(Bitreader reader) throws IOException {
         boolean allDefault = reader.readBool();
-        useIccProfile = allDefault ? false : reader.readBool();
+        useIccProfile = !allDefault && reader.readBool();
         if (!allDefault)
             colorEncoding = reader.readEnum();
         else

@@ -84,7 +84,7 @@ public class FrameHeader {
         type = allDefault ? FrameFlags.REGULAR_FRAME : reader.readBits(2);
         encoding = allDefault ? FrameFlags.VARDCT : reader.readBits(1);
         flags = allDefault ? 0 : reader.readU64();
-        doYCbCr = (!allDefault && !parent.isXYBEncoded()) ? reader.readBool() : false;
+        doYCbCr = !allDefault && !parent.isXYBEncoded() && reader.readBool();
         jpegUpsampling = new IntPoint[3];
         if (doYCbCr && (flags & FrameFlags.USE_LF_FRAME) == 0) {
             for (int i = 0; i < 3; i++) {
@@ -123,7 +123,7 @@ public class FrameHeader {
         }
         passes = (!allDefault && type != FrameFlags.REFERENCE_ONLY) ? new PassesInfo(reader) : new PassesInfo();
         lfLevel = type == FrameFlags.LF_FRAME ? 1 + reader.readBits(2) : 0;
-        haveCrop = (!allDefault && type != FrameFlags.LF_FRAME) ? reader.readBool() : false;
+        haveCrop = !allDefault && type != FrameFlags.LF_FRAME && reader.readBool();
         if (haveCrop && type != FrameFlags.REFERENCE_ONLY) {
             int x0 = reader.readU32(0, 8, 256, 11, 2304, 14, 18688, 30);
             int y0 = reader.readU32(0, 8, 256, 11, 2304, 14, 18688, 30);
@@ -159,10 +159,9 @@ public class FrameHeader {
         isLast = normalFrame ? reader.readBool() : type == FrameFlags.REGULAR_FRAME;
         saveAsReference = !allDefault && type != FrameFlags.LF_FRAME && !isLast ? reader.readBits(2) : 0;
         saveBeforeCT = !allDefault && (type == FrameFlags.REFERENCE_ONLY || fullFrame
-            && (type == FrameFlags.REGULAR_FRAME || type == FrameFlags.SKIP_PROGRESSIVE)
-            && (duration == 0 || saveAsReference != 0)
-            && !isLast && blendingInfo.mode == FrameFlags.BLEND_REPLACE)
-                ? reader.readBool() : false;
+		        && (type == FrameFlags.REGULAR_FRAME || type == FrameFlags.SKIP_PROGRESSIVE)
+		        && (duration == 0 || saveAsReference != 0)
+		        && !isLast && blendingInfo.mode == FrameFlags.BLEND_REPLACE) && reader.readBool();
         if (allDefault) {
             name = "";
         } else {

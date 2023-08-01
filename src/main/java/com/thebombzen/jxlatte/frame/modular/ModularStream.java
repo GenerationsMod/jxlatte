@@ -258,20 +258,14 @@ public class ModularStream {
                 ExceptionalIntBiConsumer rct = switch (type) {
                     case 0 -> (x, y) -> {
                     };
-                    case 1 -> (x, y) -> {
-                        v[2].set(x, y, v[0].get(x, y) + v[2].get(x, y));
-                    };
-                    case 2 -> (x, y) -> {
-                        v[2].set(x, y, v[0].get(x, y) + v[1].get(x, y));
-                    };
+                    case 1 -> (x, y) -> v[2].set(x, y, v[0].get(x, y) + v[2].get(x, y));
+                    case 2 -> (x, y) -> v[2].set(x, y, v[0].get(x, y) + v[1].get(x, y));
                     case 3 -> (x, y) -> {
                         int a = v[0].get(x, y);
                         v[2].set(x, y, a + v[2].get(x, y));
                         v[1].set(x, y, a + v[1].get(x, y));
                     };
-                    case 4 -> (x, y) -> {
-                        v[1].set(x, y, v[1].get(x, y) + ((v[0].get(x, y) + v[2].get(x, y)) >> 1));
-                    };
+                    case 4 -> (x, y) -> v[1].set(x, y, v[1].get(x, y) + ((v[0].get(x, y) + v[2].get(x, y)) >> 1));
                     case 5 -> (x, y) -> {
                         int a = v[0].get(x, y);
                         int c = v[2].get(x, y);

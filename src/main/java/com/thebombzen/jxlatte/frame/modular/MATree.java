@@ -42,7 +42,7 @@ public class MATree {
             if (nodes.size() > (1 << 20))
                 throw new InvalidBitstreamException("Tree too large");
             int property = stream.readSymbol(reader, 1) - 1;
-            MATree node = nodes.size() == 0 ? this : new MATree();
+            MATree node = nodes.isEmpty() ? this : new MATree();
             if (property >= 0) {
                 int value = MathHelper.unpackSigned(stream.readSymbol(reader, 0));
                 int leftChild = nodes.size() + nodesRemaining + 1;

@@ -2,7 +2,7 @@ package com.thebombzen.jxlatte.util.functional;
 
 @FunctionalInterface
 public interface ExceptionalIntBiConsumer {
-    void consumeExceptionally(int x, int y) throws Throwable;
+    void consumeExceptionally(int x, int y);
 
     default void consume(int x, int y) {
         try {

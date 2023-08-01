@@ -136,7 +136,7 @@ public class PassGroup {
         }
         MathHelper.inverseDCT2D(scratchBlock[0], scratchBlock[1], IntPoint.ZERO, IntPoint.ZERO, new IntPoint(8, 4), scratchBlock[2], scratchBlock[3], false);
         for (int iy = 0; iy < 4; iy++) {
-	        System.arraycopy(scratchBlock[1][iy], 0, buffer[ps.y + (flipY == 1 ? 0 : 4) + iy], ps.x + 0, 8);
+	        System.arraycopy(scratchBlock[1][iy], 0, buffer[ps.y + (flipY == 1 ? 0 : 4) + iy], ps.x, 8);
         }
     }
 
@@ -205,9 +205,7 @@ public class PassGroup {
 			            for (int x = 0; x < 2; x++) {
 				            scratchBlock[0][0][0] = lfs[x];
 				            for (int iy = 0; iy < 4; iy++) {
-					            for (int ix = (iy == 0 ? 1 : 0); ix < 8; ix++) {
-						            scratchBlock[0][iy][ix] = coeffs[i][c][x + iy * 2][ix];
-					            }
+					            System.arraycopy(coeffs[i][c][x + iy * 2], (iy == 0 ? 1 : 0), scratchBlock[0][iy], (iy == 0 ? 1 : 0), 8 - (iy == 0 ? 1 : 0));
 				            }
 				            MathHelper.inverseDCT2D(scratchBlock[0], frameBuffer[c], IntPoint.ZERO,
 						            new IntPoint(4 * x, 0).plus(pixelPosInFrame), new IntPoint(8, 4),
@@ -222,9 +220,7 @@ public class PassGroup {
 			            for (int y = 0; y < 2; y++) {
 				            scratchBlock[0][0][0] = lfs[y];
 				            for (int iy = 0; iy < 4; iy++) {
-					            for (int ix = (iy == 0 ? 1 : 0); ix < 8; ix++) {
-						            scratchBlock[0][iy][ix] = coeffs[i][c][y + iy * 2][ix];
-					            }
+					            System.arraycopy(coeffs[i][c][y + iy * 2], (iy == 0 ? 1 : 0), scratchBlock[0][iy], (iy == 0 ? 1 : 0), 8 - (iy == 0 ? 1 : 0));
 				            }
 				            MathHelper.inverseDCT2D(scratchBlock[0], frameBuffer[c], IntPoint.ZERO, new IntPoint(0, 4 * y).plus(pixelPosInFrame), new IntPoint(8, 4), scratchBlock[1], scratchBlock[2], false);
 			            }

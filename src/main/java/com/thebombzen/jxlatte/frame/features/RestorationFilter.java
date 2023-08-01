@@ -44,9 +44,9 @@ public class RestorationFilter {
 
     public RestorationFilter(Bitreader reader, int encoding) throws IOException {
         boolean allDefault = reader.readBool();
-        gab = allDefault ? true : reader.readBool();
+        gab = allDefault || reader.readBool();
         // note that this is signalled if allDefault == true
-        customGab = !allDefault && gab ? reader.readBool() : false;
+        customGab = !allDefault && gab && reader.readBool();
         if (customGab) {
             for (int i = 0; i < 3; i++) {
                 gab1Weights[i] = reader.readF16();
@@ -54,19 +54,18 @@ public class RestorationFilter {
             }
         }
         epfIterations = allDefault ? 2 : reader.readBits(2);
-        epfSharpCustom = !allDefault && epfIterations > 0 && encoding == FrameFlags.VARDCT ?
-            reader.readBool() : false;
+        epfSharpCustom = !allDefault && epfIterations > 0 && encoding == FrameFlags.VARDCT && reader.readBool();
         if (epfSharpCustom) {
             for (int i = 0; i < epfSharpLut.length; i++)
                 epfSharpLut[i] = reader.readF16();
         }
-        epfWeightCustom = !allDefault && epfIterations > 0 ? reader.readBool() : false;
+        epfWeightCustom = !allDefault && epfIterations > 0 && reader.readBool();
         if (epfWeightCustom) {
             for (int i = 0; i < epfChannelScale.length; i++)
                 epfChannelScale[i] = reader.readF16();
             reader.readBits(32); // ok
         }
-        epfSigmaCustom = !allDefault && epfIterations > 0 ? reader.readBool() : false;
+        epfSigmaCustom = !allDefault && epfIterations > 0 && reader.readBool();
         epfQuantMul = epfSigmaCustom && encoding == FrameFlags.VARDCT ? reader.readF16() : 0.46f;
         epfPass0SigmaScale = epfSigmaCustom ? reader.readF16() : 0.9f;
         epfPass2SigmaScale = epfSigmaCustom ? reader.readF16() : 6.5f;

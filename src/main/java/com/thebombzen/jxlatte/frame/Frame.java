@@ -219,7 +219,7 @@ public class Frame {
         return buffer;
     }
 
-    private CompletableFuture<Bitreader> getBitreader(int index) throws IOException {
+    private CompletableFuture<Bitreader> getBitreader(int index) {
         if (tocLengths.length == 1)
             return CompletableFuture.completedFuture(this.globalReader);
         int permutedIndex = tocPermuation[index];
@@ -546,7 +546,7 @@ public class Frame {
         }
     }
 
-    private void performEdgePreservingFilter() throws InvalidBitstreamException {
+    private void performEdgePreservingFilter() {
         final float stepMultiplier = (float)(1.65D * 4D * (1D - MathHelper.SQRT_H));
 
         final IntPoint size = getPaddedFrameSize();

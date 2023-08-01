@@ -41,7 +41,7 @@ public class HFGlobal {
             for (int i = 0; i < numParams; i++) {
                 vals[c][i] = reader.readF16();
             }
-            vals[c][0] *= 64D;
+            vals[c][0] *= 64F;
         }
         return vals;
     }
@@ -298,7 +298,7 @@ public class HFGlobal {
                 for (IntPoint p : FlowHelper.range2D(9, 3)) {
                     m[p.y][p.x] = reader.readF16();
                     if (p.x < 6)
-                        m[p.y][p.x] *= 64D;
+                        m[p.y][p.x] *= 64F;
                 }
                 float[][] d = readDCTParams(reader);
                 float[][] f = readDCTParams(reader);
