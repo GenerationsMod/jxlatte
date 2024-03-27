@@ -8,7 +8,7 @@ group = "com.thebombzen"
 version = "1.1.2"
 
 repositories.mavenCentral()
-dependencies.compileOnly("org.jetbrains:annotations:24.0.1")
+dependencies.compileOnly("org.jetbrains:annotations:24.1.0")
 
 publishing {
     publications.create<MavenPublication>("mavenCommon").from(components["java"])
